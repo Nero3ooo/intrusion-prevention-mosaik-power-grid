@@ -1,0 +1,128 @@
+version: '3.4'
+networks:
+  local_network_dev:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
+services:
+  testbed:
+    build:
+      context: testbed
+    image: itsis-blackout/mosaik-testbed:latest
+    container_name: mosaik_testbed
+    healthcheck:
+      test: "curl --fail --silent --write-out 'HTTP CODE : %{http_code}\n' --output /dev/null http://127.0.0.1:8000/"
+      interval: 60s
+      timeout: 10s
+      retries: 1
+      start_period: 60s
+    ports:
+      - "9000:8000" # MOSAIK visualization
+      - "10503:10503" # RTU Port
+      - "10502:10502" # RTU Port
+    environment:
+      - PYTHONUNBUFFERED=1 # disable console output buffering
+    # FOR DEVELOPMENT ONLY!
+    #volumes:
+    #  - ./testbed:/app/
+    networks:
+      local_network_dev:
+        ipv4_address: 192.168.0.11
+
+  c2:
+    image: itsis-blackout/ids_base:latest
+    build:
+      context: ../implementation
+    container_name: mosaik_ids_c2
+    env_file: config/environment/c2.env
+    command: python c2_server.py
+    ports:
+      - 8777:8777 # Websocket Port for connection to Visualization
+    volumes:
+      - ./config/certificates:/config/certificates
+    networks:
+      local_network_dev:
+        ipv4_address: 192.168.0.12
+
+  visualization:
+    build:
+      context: ../visualization
+    image: itsis-blackout/visualization:latest
+    container_name: ids_visualization
+    ports:
+      - 8999:8080 # Public Frontend
+    # FOR DEVELOPMENT ONLY!
+    #volumes:
+    #  - ./visualization:/app/
+    networks:
+      local_network_dev:
+        ipv4_address: 192.168.0.13
+
+  local_monitor_1:
+    image: itsis-blackout/ids_base:latest
+    build:
+      context: ../implementation
+    container_name: mosaik_ids_lm_1
+    env_file: config/environment/lm_1.env
+    command: python local_monitor.py
+    volumes:
+      - ./config/certificates:/config/certificates
+      - ./config/rtu_0.json:/config/rtu_0.json
+    networks:
+      local_network_dev:
+        ipv4_address: 192.168.0.14
+
+  local_monitor_2:
+    image: itsis-blackout/ids_base:latest
+    build:
+      context: ../implementation
+    container_name: mosaik_ids_lm_2
+    env_file: config/environment/lm_2.env
+    command: python local_monitor.py
+    volumes:
+      - ./config/certificates:/config/certificates
+      - ./config/rtu_1.json:/config/rtu_1.json
+    networks:
+      local_network_dev:
+        ipv4_address: 192.168.0.15
+
+  neighborhood_monitor_1:
+    image: itsis-blackout/ids_base:latest
+    build:
+      context: ../implementation
+    container_name: mosaik_ids_nm_1
+    env_file: config/environment/nm_1.env
+    command: python neighborhood_monitor.py
+    volumes:
+      - ./config/certificates:/config/certificates
+    networks:
+      local_network_dev:
+        ipv4_address: 192.168.0.16
+
+  neighborhood_monitor_2:
+    image: itsis-blackout/ids_base:latest
+    build:
+      context: ../implementation
+    container_name: mosaik_ids_nm_2
+    env_file: config/environment/nm_2.env
+    command: python neighborhood_monitor.py
+    volumes:
+      - ./config/certificates:/config/certificates
+    networks:
+      local_network_dev:
+        ipv4_address: 192.168.0.17
+
+  attack-engine:
+    image: itsis-blackout/attack-tool:latest
+    build:
+      context: ../attack-tool
+    container_name: mosaik_ids_attack_engine
+    env_file: config/environment/ae.env
+    command: python gui.py
+    volumes:
+        - ./testbed/data/config_files:/distributed-smart-grid-ids-main/rtu-files
+        - /tmp/.X11-unix:/tmp/.X11-unix
+    networks:
+      local_network_dev:
+        ipv4_address: 192.168.0.18

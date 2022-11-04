@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>IDS Visualization</title>
+    <link rel="icon" type="image/png" href="/assets/logo_itsis.png">
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/tgdwyer/WebCola/WebCola/cola.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.5.0/dist/svg-pan-zoom.min.js"></script>
+    <script src="/js/visualize.js" type="module"></script>
+    <script src="/js/com.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div id="legend">
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-item--bus">
+                    b
+                </div>
+                <div class="legend-label">Bus</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-item--meter">
+                    m
+                </div>
+                <span class="legend-label">Meter</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-item--switch">
+                    s
+                </div>
+                <span class="legend-label">Switch</span>
+            </div>
+        </div>
+        <div class="legend-groups">
+            
+        </div>
+    </div>
+
+    <div id="container" class="svg-container">
+        <svg id="svg-graph"></svg>
+        <span id="loading">Loading...</span>
+    </div>
+    
+    <div id="overlay">
+        <div id="reports">
+            <div>
+                <h2>Requirement Violations</h2>
+            </div>
+            <div id="reports-feed">
+                
+            </div>
+        </div>
+        <div id="controls">
+            <div id="controls-zoom-in">+</div>
+            <div id="controls-zoom-out">—</div>
+            <!--<div id="controls-zoom-reset">Reset</div>-->
+            <div id="controls-zoom">90%</div>
+        </div>
+    </div>
+</body>
+
+</html>

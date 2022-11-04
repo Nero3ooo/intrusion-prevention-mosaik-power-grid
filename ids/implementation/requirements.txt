@@ -1,0 +1,10 @@
+asyncio
+asyncua
+psutil
+setuptools
+termcolor
+websockets
+xmltodict
+psutil
+
+https://github.com/jjchromik/pymodbus3/archive/refs/heads/master.zip#egg=pymodbus3

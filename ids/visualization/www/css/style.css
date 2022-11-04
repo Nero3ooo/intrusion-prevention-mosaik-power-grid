@@ -1,0 +1,324 @@
+:root {
+    --padding: 15px;
+    --color-bg: white;
+    --color-secondary: #000000;
+    --color-primary: black;
+}
+
+html,body {
+    display: flex;
+    width: 100%;
+    
+    margin: 0;
+    padding: 0;
+    
+    font-size: 16px;
+    font-family: 'Source Sans Pro', sans-serif;
+    color: var(--color-primary);
+}
+
+h1, h2, h3, h4 {
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 100vw;
+    padding-bottom: 100vh;
+    z-index: 0;
+}
+
+#svg-graph {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+#loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 0.25s ease-out;
+    font-weight: bold;
+}
+
+#loading.loaded {
+    opacity: 0;
+}
+
+#reports {
+    position: fixed;
+    height: calc(100% - var(--padding) * 3 - 140px);
+    top: var(--padding);
+    left: var(--padding);
+    width: 20vw;
+    min-width: 300px;
+    background-color: var(--color-bg);  
+    box-shadow: 0 0 1rem 0 rgba(0,0,0, .3);
+    border-radius: 10px;
+    
+    padding: var(--padding);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.report {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 35px 1fr 0.5fr;
+    
+    height: 45px;
+    animation: highlight-report 1s infinite alternate ease-in-out;
+    animation-iteration-count: 1;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+@keyframes highlight-report {
+    0% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: rgba(190, 0, 0, 0.294);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.report .violation-type {
+    background-color: rgb(184, 0, 0);
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: white;
+    line-height: 0.9em;
+    
+    width: 35px;
+    height: 35px;
+}
+
+.report .component {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    padding-left: var(--padding);
+}
+
+.report .timestamp {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+#controls {
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    left: calc(30vw + var(--padding));
+    width: calc(100% - var(--padding) * 2 - 30vw);
+    background-color: transparent;  
+    padding: var(--padding);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    column-gap: 10px;
+    border-radius: 10px;
+}
+
+#controls div {
+    padding: 10px 10px;
+    background-color: var(--color-secondary);
+    color: var(--color-bg);
+    font-weight: bold;
+    width: 40px;
+    text-align: center;
+    border-radius: 5px;
+    user-select: none;
+    cursor: pointer;
+}
+
+#controls-zoom {
+    width: 50px !important; 
+    text-align: right !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    pointer-events: none;
+    background-color: transparent !important;
+    color: var(--color-secondary) !important;
+}
+
+.links line {
+    stroke: #aaa;
+}
+
+#watermark {
+    position: fixed;
+    top: var(--padding);
+    left: var(--padding);
+    width: 60px;
+    height: 60px;
+    background-image: url('/assets/logo_itsis.png');
+    background-size: cover;
+    pointer-events: none;
+    z-index: 1;
+}
+
+#legend {
+    position: fixed;
+    bottom: var(--padding);
+    left: var(--padding);
+    z-index: 1;
+    width: 20vw;
+    min-width: 300px;
+    height: 140px;
+    overflow-y: auto;    
+    display: grid;
+    justify-content: center;
+    align-items: start;
+    grid-template-rows: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 10px;
+    padding: var(--padding);
+    background-color: var(--color-bg); 
+    box-shadow: 0 0 1rem 0 rgba(0,0,0, .3);
+    border-radius: 10px;
+}
+
+.legend-items, .legend-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.group-item {
+    font-weight: bold;
+}
+
+.group-color {
+    width: 30px;
+    height: 30px;
+    border: 2px solid black;
+    display: inline-block;
+}
+
+.legend-label {
+    height: 30px;
+    display: grid;
+    align-items: center;
+}
+
+.legend-item,.group-item {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 0.8fr 1.2fr;
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+    height: 30px;
+    overflow: hidden;
+}
+
+.legend-item * {
+    display: grid;
+    place-items: center;
+    font-weight: bold;
+}
+
+.legend-item--bus {
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    border: 2px solid black;
+    background-color: white;
+}
+
+.legend-item--meter {
+    width: 100%;
+    height: 30px;
+    border-radius: 5px;
+    border: 2px solid black;
+    background-color: white;
+    padding-bottom: 0.3em;
+}
+
+.legend-item--switch {
+    position: relative;
+    width: 40px;
+    height: 30px;
+    border-left: 2px solid transparent;
+    border-bottom: 2px solid black;
+    
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.legend-item--switch,
+.legend-item--switch::before {
+    box-sizing: border-box;
+    border-right: 2px solid transparent;
+}
+.legend-item--switch::before {
+    content: "";
+    position: absolute;
+    width: 33px;
+    height: 33px;
+    border-left: 2px solid black;
+    border-top: 2px solid black;
+    border-bottom: 2px solid transparent;
+    transform: rotate(45deg) skew(10deg,10deg);
+    left: 2px;
+    bottom: -18px;
+}
+
+circle {
+    transition: fill 0.2s linear;
+}
+.component--failure {
+    animation-name: fill-red;
+    animation-duration: 10s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+}
+
+line.component--failure {
+    animation-name: stroke-red;
+}
+
+@keyframes fill-red {
+    0% {
+        fill: rgb(220, 0, 0);
+    }
+    100% {
+        fill: white;
+    }
+}
+
+@keyframes stroke-red {
+    0% {
+        stroke: rgb(220, 0, 0);
+    }
+    100% {
+        stroke: #aaa;
+    }
+}

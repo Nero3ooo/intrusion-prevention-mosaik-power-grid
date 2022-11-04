@@ -1,0 +1,3 @@
+[submodule "seccomm"]
+	path = seccomm
+	url = git@zivgitlab.uni-muenster.de:ag-lammers/itsis-blackout/seccomm.git

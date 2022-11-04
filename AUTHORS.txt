@@ -1,0 +1,6 @@
+This system was originally created in 2021 by Verena Menzel as part of her master thesis.
+
+Note: This may not list all contributors. See the revision history in source control for a full list.
+
+Further contributions by:
+    seccom project team: Gelieza Kötterheinrich, Lisa Angold, Linus Lehbrink, Kai Großhanten, Jan Speckamp

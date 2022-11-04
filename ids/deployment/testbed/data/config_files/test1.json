@@ -1,0 +1,18 @@
+{
+    "name": "New Scenario",
+    "commands": [
+        {
+            "rtu": 0,
+            "type": "write_switch",
+            "element_id": 3,
+            "delay": 1,
+            "value": 0.0
+        }
+    ],
+    "rtus": [
+        {
+            "ip": "0.0.0.0",
+            "port": "10502"
+        }
+    ]
+}

@@ -1,0 +1,52 @@
+asyncio,apache-2.0,http://www.apache.org/licenses/,Apache License 2.0
+asyncua,apache-2.0,http://www.apache.org/licenses/,Apache License 2.0
+setuptools,mit,http://opensource.org/licenses/mit-license.php,MIT License
+termcolor,mit,http://opensource.org/licenses/mit-license.php,MIT License
+websockets,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+xmltodict,mit,http://opensource.org/licenses/mit-license.php,MIT License
+psutil,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+attrs,mit,http://opensource.org/licenses/mit-license.php,MIT License
+automat,mit,http://opensource.org/licenses/mit-license.php,MIT License
+constantly,mit,http://opensource.org/licenses/mit-license.php,MIT License
+decorator,bsd-simplified,http://www.opensource.org/licenses/BSD-2-Clause,BSD-2-Clause
+h5py,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+hyperlink,mit,http://opensource.org/licenses/mit-license.php,MIT License
+idna,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+incremental,mit,http://opensource.org/licenses/mit-license.php,MIT License
+jeepney,mit,http://opensource.org/licenses/mit-license.php,MIT License
+mosaik,lgpl-2.1,http://www.gnu.org/licenses/lgpl-2.1.html,GNU Lesser General Public License 2.1
+mosaik-api,lgpl-2.1,http://www.gnu.org/licenses/lgpl-2.1.html,GNU Lesser General Public License 2.1
+mosaik-csv,lgpl-2.1,http://www.gnu.org/licenses/lgpl-2.1.html,GNU Lesser General Public License 2.1
+mosaik-hdf5,lgpl-2.1,http://www.gnu.org/licenses/lgpl-2.1.html,GNU Lesser General Public License 2.1
+mosaik-householdsim,lgpl-2.1,http://www.gnu.org/licenses/lgpl-2.1.html,GNU Lesser General Public License 2.1
+networkx,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+numpy,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+pymodbus3,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+pypower,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+pyserial,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+python-dateutil,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+scipy,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+simpy,mit,http://opensource.org/licenses/mit-license.php,MIT License
+simpy.io,mit,http://opensource.org/licenses/mit-license.php,MIT License
+six,mit,http://opensource.org/licenses/mit-license.php,MIT License
+twisted,mit,http://opensource.org/licenses/mit-license.php,MIT License
+xlrd,bsd-new,http://www.opensource.org/licenses/BSD-3-Clause,bsd-3-clause
+zope.interface,zpl-2.1,http://www.zope.org/Resources/License/,Zope Public License 2.1
+arrow,apache-2.0,http://www.apache.org/licenses/,Apache License 2.0
+docopt,mit,http://opensource.org/licenses/mit-license.php,MIT License
+flake8,mit,http://opensource.org/licenses/mit-license.php,MIT License
+mccabe,mit,http://opensource.org/licenses/mit-license.php,MIT License
+pep8,mit,http://opensource.org/licenses/mit-license.php,MIT License
+pkginfo,mit,http://opensource.org/licenses/mit-license.php,MIT License
+pyflakes,mit,http://opensource.org/licenses/mit-license.php,MIT License
+requests,apache-2.0,http://www.apache.org/licenses/,Apache License 2.0
+requests-toolbelt,apache-2.0,http://www.apache.org/licenses/,Apache License 2.0
+twine,apache-2.0,http://www.apache.org/licenses/,Apache License 2.0
+wheel,mit,http://opensource.org/licenses/mit-license.php,MIT License
+coverage,apache-2.0,http://www.apache.org/licenses/,Apache License 2.0
+pluggy,mit,http://opensource.org/licenses/mit-license.php,MIT License
+py,mit,http://opensource.org/licenses/mit-license.php,MIT License
+pytest,mit,http://opensource.org/licenses/mit-license.php,MIT License
+pytest-cov,mit,http://opensource.org/licenses/mit-license.php,MIT License
+tox,mit,http://opensource.org/licenses/mit-license.php,MIT License
+virtualenv,mit,http://opensource.org/licenses/mit-license.php,MIT License

@@ -1,0 +1,8 @@
+/.idea
+*.bat
+*.json
+*/__pycache__
+/seccomm
+*.pyc
+/__pycache__
+/test_scenarios

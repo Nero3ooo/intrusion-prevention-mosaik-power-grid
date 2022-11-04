@@ -1,0 +1,25 @@
+{
+    "name": "New Scenario",
+    "commands": [
+        {
+            "rtu": 0,
+            "type": "write_current_sensor",
+            "element_id": 17,
+            "delay": 1,
+            "value": 0.04
+        },
+        {
+            "rtu": 0,
+            "type": "write_current_sensor",
+            "element_id": 17,
+            "delay": 0,
+            "value": 0.0045
+        }
+    ],
+    "rtus": [
+        {
+            "ip": "127.0.0.1",
+            "port": "10502"
+        }
+    ]
+}

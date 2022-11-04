@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<DVCD label="Local substation 2">
+    <ip>192.168.0.11</ip>
+    <port>10503</port>
+    <identity>
+        <vendor name="UTwente 2" url="https://www.utwente.nl" />
+        <product name="PoorSecuritySubstation" code="PSS" model="PSS 1.0" />
+        <version major="0" minor="5" />
+    </identity>
+
+    <!-- Switches -->
+    <reg type="co" index="0" label="switch_1-branch_37" dt="bool">True</reg>
+    <reg type="co" index="1" label="switch_2-branch_31" dt="bool">True</reg>
+
+    <!-- Sensors (Voltages) -->
+    <reg type="hr" index="0" label="sensor_1-node_b27" dt="64bit_float">0</reg>
+    <reg type="hr" index="4" label="sensor_2-node_b27" dt="64bit_float">67.0</reg>
+    <reg type="hr" index="8" label="sensor_3-node_b27" dt="64bit_float">12.34</reg>
+    <reg type="hr" index="12" label="sensor_4-node_b26" dt="64bit_float">67.0</reg>
+    <reg type="hr" index="16" label="sensor_5-node_b26" dt="64bit_float">12.34</reg>
+    <reg type="hr" index="20" label="sensor_6-node_b25" dt="64bit_float">12.34</reg>
+    <reg type="hr" index="24" label="sensor_7-node_b25" dt="64bit_float">67.0</reg>
+    <reg type="hr" index="28" label="sensor_8-node_b25" dt="64bit_float">23.56</reg>
+    <reg type="hr" index="32" label="sensor_9-node_b24" dt="64bit_float">67.0</reg>
+    <reg type="hr" index="36" label="sensor_10-node_b24" dt="64bit_float">12.34</reg>
+    <reg type="hr" index="40" label="sensor_11-node_b24" dt="64bit_float">0</reg>
+    <reg type="hr" index="44" label="sensor_12-node_b24" dt="64bit_float">23.56</reg>
+
+    <!-- Sensors (Currents) -->
+    <reg type="hr" index="48" label="sensor_1-branch_35" dt="64bit_float">67.0</reg>
+    <reg type="hr" index="52" label="sensor_2-branch_37" dt="64bit_float">12.34</reg>
+    <reg type="hr" index="56" label="sensor_3-branch_34" dt="64bit_float">67.0</reg>
+    <reg type="hr" index="60" label="sensor_4-branch_34" dt="64bit_float">0</reg>
+    <reg type="hr" index="64" label="sensor_5-branch_33" dt="64bit_float">12.34</reg>
+    <reg type="hr" index="68" label="sensor_6-branch_33" dt="64bit_float">67.0</reg>
+    <reg type="hr" index="72" label="sensor_7-branch_37" dt="64bit_float">23.56</reg>
+    <reg type="hr" index="76" label="sensor_8-branch_32" dt="64bit_float">67.0</reg>
+    <reg type="hr" index="80" label="sensor_9-branch_32" dt="64bit_float">12.34</reg>
+    <reg type="hr" index="84" label="sensor_10-branch_39" dt="64bit_float">0</reg>
+    <reg type="hr" index="88" label="sensor_11-branch_31" dt="64bit_float">23.56</reg>
+    <reg type="hr" index="92" label="sensor_12-branch_40" dt="64bit_float">23.56</reg>
+
+    <!-- Maximalbelastbarkeit Leitungen -->
+    <reg type="hr" index="96" label="max-branch_35" dt="64bit_float">23.56</reg>
+    <reg type="hr" index="100" label="max-branch_37" dt="64bit_float">0</reg>
+    <reg type="hr" index="104" label="max-branch_34" dt="64bit_float">0.5</reg>
+    <reg type="hr" index="108" label="max-branch_34" dt="64bit_float">0.4</reg>
+    <reg type="hr" index="112" label="max-branch_33" dt="64bit_float">5.0</reg>
+    <reg type="hr" index="116" label="max-branch_33" dt="64bit_float">0.4</reg>
+    <reg type="hr" index="120" label="max-branch_37" dt="64bit_float">5.0</reg>
+    <reg type="hr" index="124" label="max-branch_28" dt="64bit_float">5.0</reg>
+    <reg type="hr" index="128" label="max-branch_30" dt="64bit_float">5.1</reg>
+    <reg type="hr" index="132" label="max-branch_30" dt="64bit_float">0.4</reg>
+    <reg type="hr" index="136" label="max-branch_38" dt="64bit_float">0.5</reg>
+    <reg type="hr" index="140" label="max-branch_31" dt="64bit_float">0.5</reg>
+
+    <!-- Maximalbelastbarkeit Busse -->
+    <reg type="hr" index="144" label="max-node_b27" dt="64bit_float">10</reg>
+    <reg type="hr" index="148" label="max-node_b27" dt="64bit_float">10</reg>
+    <reg type="hr" index="152" label="max-node_b27" dt="64bit_float">10</reg>
+    <reg type="hr" index="156" label="max-node_b26" dt="64bit_float">10</reg>
+    <reg type="hr" index="160" label="max-node_b26" dt="64bit_float">10</reg>
+    <reg type="hr" index="164" label="max-node_b25" dt="64bit_float">10</reg>
+    <reg type="hr" index="168" label="max-node_b25" dt="64bit_float">10</reg>
+    <reg type="hr" index="172" label="max-node_b25" dt="64bit_float">10</reg>
+    <reg type="hr" index="176" label="max-node_b24" dt="64bit_float">10</reg>
+    <reg type="hr" index="180" label="max-node_b24" dt="64bit_float">10</reg>
+    <reg type="hr" index="184" label="max-node_b24" dt="64bit_float">10</reg>
+    <reg type="hr" index="188" label="max-node_b24" dt="64bit_float">10</reg>
+
+    <!-- Transformator -->
+    <reg type="hr" index="192" label="tap-transformer_1" dt="64bit_float">0</reg>
+
+    <code>mosaikrtu/conf/rtu_logic_good.py</code>
+</DVCD>
