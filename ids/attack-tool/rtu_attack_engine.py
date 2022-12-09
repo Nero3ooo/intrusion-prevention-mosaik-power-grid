@@ -20,6 +20,14 @@ logging.basicConfig(format='%(levelname)s:%(name)s: %(message)s')
 # Set to True to test the attack engine by launching it as a console application.
 TEST_ATTACK_ENGINE = True
 
+# Set logging information (default is DEBUG)
+ERROR = 1
+WARNING = 2
+INFORMATION = 3
+DEBUG = 4
+logstate = WARNING
+
+
 # Define read & write commands
 read_commands = ('read_trafo', 'read_switch', 'read_volt_sensor', 'read_max_volt',
                  'read_current_sensor', 'read_max_current')
@@ -234,7 +242,8 @@ class RTUAttackEngine:
             self._log_invalid_element_number(element_number, name)
         # Otherwise print out and return the read value.
         else:
-            print(f"{name.capitalize()} {element_number} has value {value}{trafo_string}")
+            if logstate >= INFORMATION:
+                print(f"{name.capitalize()} {element_number} has value {value}{trafo_string}")
             return value
 
     def _write_value(self, elements, name, element_number, value, type_name="register", sensor_threads=None,
