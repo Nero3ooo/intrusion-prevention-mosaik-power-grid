@@ -19,6 +19,11 @@ logger.addHandler(ch)
 from topology_loader.topology_loader import topology_loader
 from distutils.util import strtobool
 
+# for validation component
+import sys
+import asyncio
+from asyncua import Client
+
 try:
     os.remove('./outputs/output_during_rtu_step.txt')
 except OSError:
@@ -51,8 +56,15 @@ META = {
 
 
 class MonitoringRTU(mosaik_api.Simulator):
+    
+
+    url = "opc.tcp://192.168.0.19:4840/freeopcua/server/"
+    val_address = url
+    namespace = "http://itsis-blackout.ids/"
+
     def __init__(self):
         super().__init__(META)
+        asyncio.run(self.__start_opc_client())
         self.rtu_ref = ""
         self.conf = ""
         self.sid = None
@@ -193,6 +205,7 @@ class MonitoringRTU(mosaik_api.Simulator):
 
         if bool(switchstates) and RECORD_TIMES:
             rtu_model.log_event("NC")
+        print(f"mosaik set data: {commands}")
         yield self.mosaik.set_data(commands)
 
         return time + 60
@@ -222,10 +235,56 @@ class MonitoringRTU(mosaik_api.Simulator):
                 data.setdefault(eid, {})[attr] = val
         return data
 
+    async def __start_opc_client(self) -> None:
+
+         # Setup Logging for this package
+        logging.getLogger('pymodbus3').setLevel(logging.CRITICAL)
+
+        global logger
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
+
+        #handler = OPCNetworkLogger()
+        #logger.addHandler(handler)
+
+        handler = logging.StreamHandler(sys.stderr)
+        logger.addHandler(handler)
+
+
+        #self.uuid = str(config.uuid)
+        self.uuid = "1234"
+        client_val = Client(url=self.val_address)
+        self.client_val = client_val
+
+        # # security settings
+        # await client_c2.set_security(
+        #     SecurityPolicyBasic256Sha256,
+        #     certificate=self.config.cert,
+        #     private_key=self.config.private_key,
+        #     private_key_password=self.config.private_key_password,
+        #     server_certificate=self.config.c2_cert
+        # )
+
+        while True:
+            try:
+                await client_val.connect()
+                logger.info("Connected to validation Server")
+                break
+            except BaseException as e:
+                logger.error(f"{self.uuid} Connection error while connecting to validation Server. Retrying in 5 seconds")
+                await asyncio.sleep(5)
+
+        await client_val.load_data_type_definitions()
+        nsidx = await client_val.get_namespace_index(self.namespace)
+        print(f"Namespace Index for '{self.namespace}': {nsidx}")
+
+        new_value = 50
+        # Calling a method
+        res = await client_val.nodes.objects.call_method(f"{nsidx}:validate", 5)
+        print(f"Calling ServerMethod returned {res}")
 
 def main():
     return mosaik_api.start_simulation(MonitoringRTU())
 
-
 if __name__ == '__main__':
-    main()
+    main()    
