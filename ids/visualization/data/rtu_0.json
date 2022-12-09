@@ -18,6 +18,7 @@
       "type": "local",
       "segments": [
         "b19",
+        "s3",
         "sensor_17",
         "sensor_22",
         "b23"
@@ -42,50 +43,14 @@
         "b23",
         "sensor_24"
       ]
-    },
-    {
-      "id": "branch_30",
-      "i_max": 0.2,
-      "v_ref": 10500,
-      "type": "local",
-      "segments": [
-        "b22",
-        "sensor_20",
-        "sensor_21",
-        "b23"
-      ]
-    },
-    {
-      "id": "branch_28",
-      "i_max": 0.2,
-      "v_ref": 10500,
-      "type": "local",
-      "segments": [
-        "b20",
-        "sensor_15",
-        "sensor_19",
-        "b22"
-      ]
-    },
-    {
-      "id": "branch_27",
-      "i_max": 0.2,
-      "v_ref": 10500,
-      "type": "local",
-      "segments": [
-        "b19",
-        "s3",
-        "sensor_16",
-        "sensor_18",
-        "b20"
-      ]
     }
   ],
   "switches": [
     {
       "id": "s3",
       "bus_id": "b19",
-      "power_line_id": "branch_27"
+      "power_line_id": "branch_38",
+      "co_index": "0"
     }
   ],
   "buses": [
@@ -96,35 +61,15 @@
       },
       "power_lines_out": {
         "ids": [
-          "branch_27",
           "branch_38"
         ]
-      }
-    },
-    {
-      "id": "b20",
-      "power_lines_in": {
-        "id": "branch_27"
-      },
-      "power_lines_out": {
-        "id": "branch_28"
-      }
-    },
-    {
-      "id": "b22",
-      "power_lines_in": {
-        "id": "branch_28"
-      },
-      "power_lines_out": {
-        "id": "branch_30"
       }
     },
     {
       "id": "b23",
       "power_lines_in": {
         "ids": [
-          "branch_38",
-          "branch_30"
+          "branch_38"
         ]
       },
       "power_lines_out": {
@@ -151,51 +96,9 @@
       "s_voltage": 10500
     },
     {
-      "id": "sensor_16",
-      "bus_id": "b19",
-      "power_line_id": "branch_27",
-      "s_current": 0.2,
-      "s_voltage": 10500
-    },
-    {
       "id": "sensor_17",
       "bus_id": "b19",
       "power_line_id": "branch_38",
-      "s_current": 0.2,
-      "s_voltage": 10500
-    },
-    {
-      "id": "sensor_18",
-      "bus_id": "b20",
-      "power_line_id": "branch_27",
-      "s_current": 0.2,
-      "s_voltage": 10500
-    },
-    {
-      "id": "sensor_15",
-      "bus_id": "b20",
-      "power_line_id": "branch_28",
-      "s_current": 0.2,
-      "s_voltage": 10500
-    },
-    {
-      "id": "sensor_19",
-      "bus_id": "b22",
-      "power_line_id": "branch_28",
-      "s_current": 0.2,
-      "s_voltage": 10500
-    },
-    {
-      "id": "sensor_20",
-      "bus_id": "b22",
-      "power_line_id": "branch_30",
-      "s_current": 0.2,
-      "s_voltage": 10500
-    },
-    {
-      "id": "sensor_21",
-      "bus_id": "b23",
-      "power_line_id": "branch_30",
       "s_current": 0.2,
       "s_voltage": 10500
     },
