@@ -8,7 +8,9 @@ from asyncua.common.methods import uamethod
 
 @uamethod
 def validate(parent, value):
-    return value * 2
+    if (value == 5):
+        return True
+    return False
 
 
 async def main():
@@ -42,7 +44,7 @@ async def main():
         ua.QualifiedName("validate", idx),
         validate,
         [ua.VariantType.Int64],
-        [ua.VariantType.Int64],
+        [ua.VariantType.Boolean],
     )
     logger.info("Starting server!")
     async with server:
