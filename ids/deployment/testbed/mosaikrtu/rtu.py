@@ -85,6 +85,22 @@ class MonitoringRTU(mosaik_api.Simulator):
         RTU_STATS_OUTPUT = False
         #RTU_STATS_OUTPUT = bool(strtobool(conf['rtu_stats_output'].lower()))
 
+        global IPS
+        IPS = bool(strtobool(conf['ips'].lower()))
+
+        # Setup Logging for this package
+        logging.getLogger('pymodbus3').setLevel(logging.CRITICAL)
+
+        global logger
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
+
+        #handler = OPCNetworkLogger()
+        #logger.addHandler(handler)
+
+        handler = logging.StreamHandler(sys.stderr)
+        logger.addHandler(handler)
+
         #### Verena
         global fd_1
         fd_1 = open('./outputs/output_during_rtu_step.txt', 'w+')
@@ -150,6 +166,13 @@ class MonitoringRTU(mosaik_api.Simulator):
 
         for s, v in self._cache.items():
             if 'switch' in s or 'transformer' in s:
+                
+                #if the testbed was started in the ips do not connect to the validation because this is the validation
+                if not IPS:
+                    try:
+                        asyncio.run(self.__validate_commands(inputs.items()))
+                    except BaseException as e:
+                        print(e)
                 if self.data.get(
                         v['reg_type'], v['index'],
                         1)[0] != v['value']:  # TODO: operation on datablock!
