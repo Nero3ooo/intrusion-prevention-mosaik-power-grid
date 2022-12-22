@@ -95,7 +95,7 @@ class RTUConfigParser:
             self._add_sensor(element)
         elif element['type'] == 'hr' and element['label'].startswith('tap-transformer_'):
             self._add_transformer(element)
-        elif element['type'] == 'hr' and element['label'].startswith('max-'):
+        elif element['type'] == 'hr' and element['label'].startswith('max'):
             self._add_max_value(element)
         else:
             self.logger.warning(f"Unknown grid element for entry {element}!")
