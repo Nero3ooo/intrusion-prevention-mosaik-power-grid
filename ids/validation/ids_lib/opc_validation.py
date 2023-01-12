@@ -1,5 +1,9 @@
 import logging
 import sys
+import os
+sys.path.append(os.path.abspath("/app"))
+import test_scenario
+
 import xml.etree.ElementTree as ET
 
 import asyncio
@@ -16,7 +20,9 @@ def validate(parent, rtu0Data, rtu1Data):
     if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
         print(rtu1Data)
         __create_xml(rtu1Data, 1, "192.168.0.11", 10503)
-    return False
+    
+    return True
+    #return False
 
 
 def __create_xml(rtuData, rtuNumber, ip, port):
@@ -43,6 +49,10 @@ def __create_xml(rtuData, rtuNumber, ip, port):
     tree.write("new_rtu_" + str(rtuNumber) + ".xml", xml_declaration=True,encoding='utf-8',method="xml")
 
 async def main():
+
+
+    test_scenario.main(True)
+
 
      # Setup Logging for this package
     logging.getLogger('pymodbus3').setLevel(logging.CRITICAL)

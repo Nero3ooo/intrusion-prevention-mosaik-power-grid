@@ -1,2 +1,35 @@
+# pip download
+arrow==1.2.1
+attrs==21.2.0
+Automat==20.2.0
+constantly==15.1.0
+decorator==5.1.0
+docopt==0.6.2
+h5py==3.6.0
+hyperlink==21.0.0
+idna==2.10
+incremental==21.3.0
+jeepney==0.7.1
+mosaik==3.0.0
+mosaik-api==3.0.0
+mosaik-csv==1.2.0
+mosaik-hdf5==0.4
+mosaik-householdsim==2.1.0
+#mosaik-pypower==0.8.0
+#mosaik-web==0.3.0
+networkx==2.6.3
+numpy==1.20.3
+pymodbus3 @ https://github.com/jjchromik/pymodbus3/archive/refs/heads/master.zip
+PYPOWER==5.1.15
+pyserial==3.5
+python-dateutil==2.8.2
+scipy==1.6.3
+simpy==3.0.13
+simpy.io==0.2.3
+six==1.16.0
+termcolor==1.1.0
+Twisted==21.7.0
+xlrd==2.0.1
+zope.interface==5.4.0
 asyncio
 asyncua

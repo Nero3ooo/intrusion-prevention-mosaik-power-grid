@@ -22,7 +22,11 @@ from distutils.util import strtobool
 # for validation component
 import sys
 import asyncio
+from asyncua import ua
 from asyncua import Client
+
+import warnings
+warnings.filterwarnings("ignore")
 
 try:
     os.remove('./outputs/output_during_rtu_step.txt')
@@ -34,7 +38,7 @@ META = {
     'models': {
         'RTU': {
             'public': True,
-            'params': ['rtu_ref'],
+            'params': ['rtu_ref', 'in_validation'],
             'attrs': ['switchstates'],
         },
         'sensor': {
@@ -61,10 +65,10 @@ class MonitoringRTU(mosaik_api.Simulator):
     url = "opc.tcp://192.168.0.19:4840/freeopcua/server/"
     val_address = url
     namespace = "http://itsis-blackout.ids/"
+    res = False
 
     def __init__(self):
         super().__init__(META)
-        asyncio.run(self.__start_opc_client())
         self.rtu_ref = ""
         self.conf = ""
         self.sid = None
@@ -76,11 +80,11 @@ class MonitoringRTU(mosaik_api.Simulator):
         self._cache = {}
         self.worker = ""
         self.server = ""
+        self.in_validation = False
         topoloader = topology_loader()
         conf = topoloader.get_config()
         global RECORD_TIMES
         RECORD_TIMES = bool(strtobool(conf['recordtimes'].lower()))
-
         global RTU_STATS_OUTPUT  # configuriert, ob die Daten in output/readings geschrieben werden sollen
         RTU_STATS_OUTPUT = False
         #RTU_STATS_OUTPUT = bool(strtobool(conf['rtu_stats_output'].lower()))
@@ -115,7 +119,7 @@ class MonitoringRTU(mosaik_api.Simulator):
         self.sid = sid
         return self.meta
 
-    def create(self, num, model, rtu_ref=None):
+    def create(self, num, model, rtu_ref=None, in_validation=False):
         rtu = []
         for i in range(num):
             rtu_idx = len(self._rtus)
@@ -131,6 +135,7 @@ class MonitoringRTU(mosaik_api.Simulator):
                     self.conf["registers"])
                 self.server = rtu_model.create_server(self.conf, self.data)
                 self.server.start()
+            self.in_validation = in_validation
             self._rtus.append(rtu)
             children = []
             for eid, attrs in sorted(entities.items()):
@@ -182,20 +187,29 @@ class MonitoringRTU(mosaik_api.Simulator):
                             self.sid, v['reg_type'] + str(v['index']), "state",
                             v['value'])
 
-                    self._cache[s]['value'] = self.data.get(
-                        v['reg_type'], v['index'], 1)[0]
-                    switchstates[v['place']] = v['value']
+                    
+                    
+                    print(f"##########Switch state changed. place: {v['place']}  new value: {v['value']}")
+                    if(self.res or "transformer" in v['place']):
+                        self._cache[s]['value'] = self.data.get(v['reg_type'], v['index'], 1)[0]
+                        switchstates[v['place']] = v['value']
 
-                    if commands[src][dest] == {}:
-                        commands[src][dest]['switchstates'] = switchstates
+                        if commands[src][dest] == {}:
+                            print("##########Switch state changed.")
+                            commands[src][dest]['switchstates'] = switchstates
+                        else:
+                            if (self.res):
+                                print("##########Switch state changed.")
+                                commands[src][dest]['switchstates'].update(
+                                switchstates)
                     else:
-                        commands[src][dest]['switchstates'].update(
-                            switchstates)
+                        self.data.set(v['reg_type'], v['index'], v['value'])
 
+        if self.in_validation :
+            sensor_zero_counter = 0
         for eid, data in inputs.items():
 
             for attr, values in data.items():  # attr is like I_real etc.
-
                 if attr in ['I_real', 'Vm']:
                     for src, value in values.items():
                         if "grid" in src:
@@ -206,7 +220,9 @@ class MonitoringRTU(mosaik_api.Simulator):
                             assert dev_id in self._cache
 
                             self._cache[dev_id]["value"] = value
-
+                            print(f"new data in cache and modbus for dev_id {dev_id}: {value}")
+                            if self.in_validation and value == 0.0 :
+                                sensor_zero_counter += 1
                             self.data.set(
                                 self.conf['registers'][dev_id][0],
                                 self.conf['registers'][dev_id][1], value,
@@ -230,6 +246,13 @@ class MonitoringRTU(mosaik_api.Simulator):
             rtu_model.log_event("NC")
         print(f"mosaik set data: {commands}")
         yield self.mosaik.set_data(commands)
+        if self.in_validation and sensor_zero_counter > 0:
+            if sensor_zero_counter < 2:
+                #warning
+                print("warning: maybe local blackout")
+            else:
+                #error
+                print("error: local blackout!!!")
 
         return time + 60
 
@@ -258,26 +281,11 @@ class MonitoringRTU(mosaik_api.Simulator):
                 data.setdefault(eid, {})[attr] = val
         return data
 
-    async def __start_opc_client(self) -> None:
-
-         # Setup Logging for this package
-        logging.getLogger('pymodbus3').setLevel(logging.CRITICAL)
-
-        global logger
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-
-        #handler = OPCNetworkLogger()
-        #logger.addHandler(handler)
-
-        handler = logging.StreamHandler(sys.stderr)
-        logger.addHandler(handler)
-
+    async def __validate_commands(self, items) -> None:
 
         #self.uuid = str(config.uuid)
         self.uuid = "1234"
-        client_val = Client(url=self.val_address)
-        self.client_val = client_val
+        client_val = Client(url=self.val_address, watchdog_intervall=1000)
 
         # # security settings
         # await client_c2.set_security(
@@ -300,11 +308,69 @@ class MonitoringRTU(mosaik_api.Simulator):
         await client_val.load_data_type_definitions()
         nsidx = await client_val.get_namespace_index(self.namespace)
         print(f"Namespace Index for '{self.namespace}': {nsidx}")
+        rtu0_data = ua.RTUData()
+        rtu0_data.switches = []
+        rtu0_data.others = []
+        if(self.sid == "RTUSim-0"):
+            for s, v in self._cache.items():
+                if( "switch" in v["dev"]):
+                    switch = ua.SwitchData()
+                    switch.dev = v["dev"]
+                    switch.place = v["place"]
+                    switch.reg_type = v["reg_type"]
+                    switch.index = v["index"]
+                    switch.datatype = v["datatype"]
+                    switch.value = v["value"]
+                    rtu0_data.switches.append(switch)
+                elif( "transformer" in v["dev"] or "sensor" in v["dev"] or "max" in v["dev"]):
+                    other = ua.OtherData()
+                    other.dev = v["dev"]
+                    other.place = v["place"]
+                    other.reg_type = v["reg_type"]
+                    other.index = v["index"]
+                    other.datatype = v["datatype"]
+                    other.value = float(v["value"])
+                    rtu0_data.others.append(other)
 
-        new_value = 50
+        rtu1_data = ua.RTUData()
+        rtu1_data.switches = []
+        rtu1_data.others = []
+        if(self.sid == "RTUSim-1"):
+            for s, v in self._cache.items():
+                if( "switch" in v["dev"]):
+                    switch = ua.SwitchData()
+                    switch.dev = v["dev"]
+                    switch.place = v["place"]
+                    switch.reg_type = v["reg_type"]
+                    switch.index = v["index"]
+                    switch.datatype = v["datatype"]
+                    switch.value = v["value"]
+                    rtu1_data.switches.append(switch)
+                elif( "transformer" in v["dev"] or "sensor" in v["dev"] or "max" in v["dev"]):
+                    other = ua.OtherData()
+                    other.dev = v["dev"]
+                    other.place = v["place"]
+                    other.reg_type = v["reg_type"]
+                    other.index = v["index"]
+                    other.datatype = v["datatype"]
+                    other.value = float(v["value"])
+                    rtu1_data.others.append(other)
+
+        # for eid, data in items:
+        #     for attr, values in data.items():  # attr is like I_real etc.
+        #         if attr in ['I_real', 'Vm']:
+        #             for src, value in values.items():
+        #                 if "grid" in src:
+        #                     continue
+        #                 else:
+        #                     print(f"\n source: {src}\n value: {value} \n \n")
+
         # Calling a method
-        res = await client_val.nodes.objects.call_method(f"{nsidx}:validate", 5)
-        print(f"Calling ServerMethod returned {res}")
+        self.res = await client_val.nodes.objects.call_method(f"{nsidx}:validate", rtu0_data, rtu1_data)
+        print(f"Calling ServerMethod returned {self.res}")
+
+
+        #async def __build_rtu_data_object(self, ) -> None:
 
 def main():
     return mosaik_api.start_simulation(MonitoringRTU())

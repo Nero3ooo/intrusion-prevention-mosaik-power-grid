@@ -51,7 +51,7 @@ class topology_loader(threading.Thread):
 
         conf = {}
         if finalload == True:
-            conf_file = os.path.join(os.getcwd(), "data", self.conf_file_name)
+            conf_file = os.path.join(os.getcwd(), "data", self.conf_file_name)    
             #print(conf_file)
         else:
             conf_file = os.path.join(os.getcwd(), self.rootdir, dir, self.conf_file_name)
@@ -67,12 +67,12 @@ class topology_loader(threading.Thread):
             conf['pv_data'] = os.path.join(dir, conf['pv_data'])
             if 'gen_data' in conf: conf['gen_data'] = os.path.join(dir, conf['gen_data'])
             conf['profile_file'] = os.path.join(dir, conf['profile_file'])
-            conf['rtu_file'] = os.path.join(dir, conf['rtu_file'])
-            conf['attack_script'] = os.path.join(dir, conf['attack_script'])
-            conf['bro_policies'] = os.path.join(dir, conf['bro_policies'])
-            conf['rt_factor'] = self.rt_factor
-            conf['rtu_stats_output'] = self.output_rtu_stats
-            conf['recordtimes'] = self.recordtimes
+            # conf['rtu_file'] = os.path.join(dir, conf['rtu_file'])
+            # conf['attack_script'] = os.path.join(dir, conf['attack_script'])
+            # conf['bro_policies'] = os.path.join(dir, conf['bro_policies'])
+            # conf['rt_factor'] = self.rt_factor
+            # conf['rtu_stats_output'] = self.output_rtu_stats
+            # conf['recordtimes'] = self.recordtimes
             if self.flag:
                 old_file = os.path.join(os.getcwd(), self.rootdir, self.jsonfile)
                 new_file = os.path.join(os.getcwd(), self.rootdir, dir, self.jsonfile)

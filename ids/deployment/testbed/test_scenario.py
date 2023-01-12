@@ -14,43 +14,53 @@ import os
 from distutils.util import strtobool
 import time
 import logging
+import sys
 
-# Simulator Configuration
-# specifies for Mosaik which simulators will be used
-sim_config = {
-    # CSV
-    'CSV': {
-        'python': 'mosaik_csv:CSV',
-    },
-    # DB
-    'DB': {
-        'cmd': 'mosaik-hdf5 %(addr)s',
-    },
-    # Household
-    'HouseholdSim': {
-        'python': 'householdsim.mosaik:HouseholdSim',
-    },
-    # PyPower (to solve PowerFlow Equations?)
-    'PyPower': {
-        'python': 'mosaik_pypower.mosaik:PyPower',
-    },
-    # WebVis
-    # to make it locally viable at localhost:8000
-    'WebVis': {
-        'cmd': 'mosaik-web -s 0.0.0.0:8000 %(addr)s',
-    },
-    # RTU Simulation
-    'RTUSim': {
-        'python': 'mosaikrtu.rtu:MonitoringRTU',
-    },
-}
+def main(in_val = False):
+    # Simulator Configuration
+    # specifies for Mosaik which simulators will be used
+    global sim_config
+    sim_config = {
+        # CSV
+        'CSV': {
+            'python': 'mosaik_csv:CSV',
+        },
+        # DB
+        'DB': {
+            'cmd': 'mosaik-hdf5 %(addr)s',
+        },
+        # Household
+        'HouseholdSim': {
+            'python': 'householdsim.mosaik:HouseholdSim',
+        },
+        # PyPower (to solve PowerFlow Equations?)
+        'PyPower': {
+            'python': 'mosaik_pypower.mosaik:PyPower',
+        },
+        # WebVis
+        # to make it locally viable at localhost:8000
+        'WebVis': {
+            'cmd': 'mosaik-web -s 0.0.0.0:8000 %(addr)s',
+        },
+        # RTU Simulation
+        'RTUSim': {
+            'python': 'mosaikrtu.rtu:MonitoringRTU',
+        },
+    }
 
 
-def main():
+
+
     # main function of the simulation
 
     # needed to load configurations
     topoloader = topology_loader()
+    if in_val:
+        topoloader.rootdir = os.path.join(topoloader.rootdir, "/app")
+    #     topoloader.flag = 0
+    #     conf = topoloader.load_config("")
+    #     print(f"configfile:  {conf}")
+    # else:
     conf = topoloader.get_config()
 
     # configuration
@@ -96,6 +106,9 @@ def main():
 
     global RECORD_TIMES
     RECORD_TIMES = bool(strtobool(conf['recordtimes'].lower()))
+
+    global IN_VALIDATION
+    IN_VALIDATION = in_val
 
     if RECORD_TIMES:
         try:
@@ -185,9 +198,9 @@ def create_scenario(world):
             profile_file=GEN_DATA,  # file with generators profiles
             grid_name=GRID_NAME).children
 
-    rtu_sim_1 = rtusim_1.RTU(rtu_ref=RTU_FILE_1)
+    rtu_sim_1 = rtusim_1.RTU(rtu_ref=RTU_FILE_1, in_validation=IN_VALIDATION)
     rtu_1 = rtu_sim_1.children
-    rtu_sim_2 = rtusim_2.RTU(rtu_ref=RTU_FILE_2)
+    rtu_sim_2 = rtusim_2.RTU(rtu_ref=RTU_FILE_2, in_validation=IN_VALIDATION)
     rtu_2 = rtu_sim_2.children
 
     # Start the database
@@ -224,70 +237,71 @@ def create_scenario(world):
     '''ADDED'''
     print("Done stuff before webvis start")
     # Web visualization
-    webvis = world.start('WebVis', start_date=START, step_size=60)
-    webvis.set_config(ignore_types=[
-        'Topology', 'ResidentialLoads', 'Grid', 'Database', 'TopologyModel',
-        'RTU', 'sensor', 'switch'
-    ])
+    if not IN_VALIDATION:
+        webvis = world.start('WebVis', start_date=START, step_size=60)
+        webvis.set_config(ignore_types=[
+            'Topology', 'ResidentialLoads', 'Grid', 'Database', 'TopologyModel',
+            'RTU', 'sensor', 'switch'
+        ])
 
-    vis_topo = webvis.Topology()
+        vis_topo = webvis.Topology()
 
-    connect_many_to_one(world, nodes, vis_topo, 'P', 'Vm')
-    webvis.set_etypes({
-        'RefBus': {
-            'cls': 'refbus',
-            'attr': 'P',
-            'unit': 'P [W]',
-            'default': 0,
-            'min': 0,
-            'max': 30000,
-        },
-        'PQBus': {
-            'cls': 'pqbus',
-            'attr': 'Vm',
-            'unit': 'U [V]',
-            'default': 230,
-            'min': 0.99 * 230,
-            'max': 1.01 * 230,
-        },
-    })
+        connect_many_to_one(world, nodes, vis_topo, 'P', 'Vm')
+        webvis.set_etypes({
+            'RefBus': {
+                'cls': 'refbus',
+                'attr': 'P',
+                'unit': 'P [W]',
+                'default': 0,
+                'min': 0,
+                'max': 30000,
+            },
+            'PQBus': {
+                'cls': 'pqbus',
+                'attr': 'Vm',
+                'unit': 'U [V]',
+                'default': 230,
+                'min': 0.99 * 230,
+                'max': 1.01 * 230,
+            },
+        })
 
-    connect_many_to_one(world, houses, vis_topo, 'P_out')
-    webvis.set_etypes({
-        'House': {
-            'cls': 'load',
-            'attr': 'P_out',
-            'unit': 'P [W]',
-            'default': 0,
-            'min': 0,
-            'max': 3000,
-        },
-    })
+        connect_many_to_one(world, houses, vis_topo, 'P_out')
+        webvis.set_etypes({
+            'House': {
+                'cls': 'load',
+                'attr': 'P_out',
+                'unit': 'P [W]',
+                'default': 0,
+                'min': 0,
+                'max': 3000,
+            },
+        })
 
-    connect_many_to_one(world, pvs, vis_topo, 'P')
-    webvis.set_etypes({
-        'PV': {
-            'cls': 'gen',
-            'attr': 'P',
-            'unit': 'P [W]',
-            'default': 0,
-            'min': -10000,
-            'max': 0,
-        },
-    })
+        connect_many_to_one(world, pvs, vis_topo, 'P')
+        webvis.set_etypes({
+            'PV': {
+                'cls': 'gen',
+                'attr': 'P',
+                'unit': 'P [W]',
+                'default': 0,
+                'min': -10000,
+                'max': 0,
+            },
+        })
 
-    if not GEN_DATA == None:
-        connect_many_to_one(world, gens, vis_topo, 'P_out')
-    webvis.set_etypes({
-        'GEN': {
-            'cls': 'gen',
-            'attr': 'P',
-            'unit': 'P [W]',
-            'default': 0,
-            'min': -10000,
-            'max': 0,
-        },
-    })
+        if not GEN_DATA == None:
+            connect_many_to_one(world, gens, vis_topo, 'P_out')
+        webvis.set_etypes({
+            'GEN': {
+                'cls': 'gen',
+                'attr': 'P',
+                'unit': 'P [W]',
+                'default': 0,
+                'min': -10000,
+                'max': 0,
+            },
+        })
 
 
 def connect_buildings_to_grid(world, houses, grid):
@@ -326,4 +340,5 @@ def connect_sensors_to_grid(world, rtu, grid):
 
 # Needed to execute file as main
 if __name__ == '__main__':
+
     main()
