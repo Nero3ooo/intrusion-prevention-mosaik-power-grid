@@ -59,9 +59,10 @@ def main(in_val = False):
         topoloader.rootdir = os.path.join(topoloader.rootdir, "/app")
     #     topoloader.flag = 0
     #     conf = topoloader.load_config("")
-    #     print(f"configfile:  {conf}")
+    #     
     # else:
     conf = topoloader.get_config()
+    print(f"configfile:  {conf}")
 
     # configuration
     global START
@@ -72,7 +73,7 @@ def main(in_val = False):
 
     global RT_FACTOR
     RT_FACTOR = float(conf['rt_factor'])
-
+    
     global PV_DATA
     PV_DATA = os.path.join("data", conf['pv_data'])
 
@@ -144,7 +145,8 @@ def main(in_val = False):
 
         def ignore_rt_check(rt_factor, rt_start, rt_strict, sim):
             pass
-        mosaik.scheduler.rt_check = ignore_rt_check
+        if not in_val:
+            mosaik.scheduler.rt_check = ignore_rt_check
 
         world.run(until=END, rt_factor=RT_FACTOR)
 
@@ -162,7 +164,10 @@ def main(in_val = False):
         print("Elapsed time: {}".format(elapsed_time))
         print("\n")
         print("End of the simulation.")
+        if in_val:
+            break
         print("Running simulation again because it was so fun!")
+        
 
 
 def create_scenario(world):
@@ -198,9 +203,9 @@ def create_scenario(world):
             profile_file=GEN_DATA,  # file with generators profiles
             grid_name=GRID_NAME).children
 
-    rtu_sim_1 = rtusim_1.RTU(rtu_ref=RTU_FILE_1, in_validation=IN_VALIDATION)
+    rtu_sim_1 = rtusim_1.RTU(rtu_ref=RTU_FILE_1)
     rtu_1 = rtu_sim_1.children
-    rtu_sim_2 = rtusim_2.RTU(rtu_ref=RTU_FILE_2, in_validation=IN_VALIDATION)
+    rtu_sim_2 = rtusim_2.RTU(rtu_ref=RTU_FILE_2)
     rtu_2 = rtu_sim_2.children
 
     # Start the database
