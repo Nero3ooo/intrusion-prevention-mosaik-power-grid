@@ -64,6 +64,9 @@ class Server(threading.Thread):
         Stop the server.
         """
         self.do_stop.set()
-        self.srv.server_close()
-        self.srv.shutdown()
-        print("[*] Stopping server.")
+        if self.srv is None:
+            print("there was no server, maybe server not started?")
+        else:
+            self.srv.server_close()
+            self.srv.shutdown()
+            print("[*] Stopping server.")
