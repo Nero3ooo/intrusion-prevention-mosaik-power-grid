@@ -10,17 +10,43 @@ import asyncio
 from asyncua import Server, ua
 from asyncua.common.methods import uamethod
 from asyncua.common.structures104 import new_struct, new_struct_field
+import time
 
+port = 10000
 @uamethod
 def validate(parent, rtu0Data, rtu1Data):
+    global port
+
+    print(f"Port1: {port}")
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
         print(rtu0Data)
-        __create_xml(rtu0Data, 0, "192.168.0.11", 10502)
-    
+        __create_xml(rtu0Data, 0, "192.168.0.19", port)
     if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
         print(rtu1Data)
-        __create_xml(rtu1Data, 1, "192.168.0.11", 10503)
+        __create_xml(rtu1Data, 1, "192.168.0.19", port+1)
+
+    port += 2
+    print(f"Port2: {port}")
     
+    # run simulation
+    result = False
+    while True:
+        try:
+            test_scenario.main(True)
+            result = True
+            break
+        except OSError:
+            bindport = port
+            print(f"Port in bind {bindport}, wait 60 seconds")
+            time.sleep(60)
+        except Exception as e:
+            name,number_of_zeros = e.args
+            print(number_of_zeros)
+            break
+    
+    if result:
+        print(f"validation successful")
+
     return True
     #return False
 
@@ -30,10 +56,10 @@ def __create_xml(rtuData, rtuNumber, ip, port):
     dvdc = ET.Element("DVDC", label="Local substation " + str(rtuNumber+1))
     ET.SubElement(dvdc, "ip").text = ip
     ET.SubElement(dvdc, "port").text = str(port)
-    identify = ET.SubElement(dvdc, "identify")
-    ET.SubElement(identify, "vendor", name="UTwente 0", url="https://www.utwente.nl")
-    ET.SubElement(identify, "product", name="PoorSecuritySubstation", code="PSS", model="PSS 1.0")
-    ET.SubElement(identify, "version", major="0", minor="5")
+    identity = ET.SubElement(dvdc, "identity")
+    ET.SubElement(identity, "vendor", name="UTwente 0", url="https://www.utwente.nl")
+    ET.SubElement(identity, "product", name="PoorSecuritySubstation", code="PSS", model="PSS 1.0")
+    ET.SubElement(identity, "version", major="0", minor="5")
 
     # Write Switches to XML-File
     for switch in rtuData.switches:
@@ -43,17 +69,13 @@ def __create_xml(rtuData, rtuNumber, ip, port):
     for other in rtuData.others:
         ET.SubElement(dvdc, "reg",type=other.reg_type, index=str(other.index), label=other.dev+"-"+other.place, dt=other.datatype).text = str(other.value)
 
+    ET.SubElement(dvdc, "code").text = "mosaikrtu/conf/rtu_logic_good.py"
     
     tree = ET.ElementTree(dvdc)
     ET.indent(tree, '  ')
-    tree.write("new_rtu_" + str(rtuNumber) + ".xml", xml_declaration=True,encoding='utf-8',method="xml")
+    tree.write("data/config_files/new_rtu_" + str(rtuNumber) + ".xml", xml_declaration=True,encoding='utf-8',method="xml")
 
 async def main():
-
-
-    test_scenario.main(True)
-
-
      # Setup Logging for this package
     logging.getLogger('pymodbus3').setLevel(logging.CRITICAL)
 
