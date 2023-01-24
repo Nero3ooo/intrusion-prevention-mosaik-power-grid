@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<DVDC label="Local substation 2">
+  <ip>192.168.0.19</ip>
+  <port>10503</port>
+  <identity>
+    <vendor name="UTwente 0" url="https://www.utwente.nl" />
+    <product name="PoorSecuritySubstation" code="PSS" model="PSS 1.0" />
+    <version major="0" minor="5" />
+  </identity>
+  <reg type="co" index="1" label="switch_2-branch_31" dt="bool">True</reg>
+  <reg type="hr" index="36" label="sensor_10-node_b24" dt="64bit_float">10499.583984375</reg>
+  <reg type="hr" index="40" label="sensor_11-node_b24" dt="64bit_float">10499.583984375</reg>
+  <reg type="hr" index="44" label="sensor_12-node_b24" dt="64bit_float">10499.583984375</reg>
+  <reg type="hr" index="84" label="sensor_10-branch_39" dt="64bit_float">0.007784810848534107</reg>
+  <reg type="hr" index="88" label="sensor_11-branch_31" dt="64bit_float">0.03113924339413643</reg>
+  <reg type="hr" index="92" label="sensor_12-branch_40" dt="64bit_float">0.014321316964924335</reg>
+  <reg type="hr" index="140" label="max10-branch_31" dt="64bit_float">0.5</reg>
+  <reg type="hr" index="144" label="max11-branch_39" dt="64bit_float">0.5</reg>
+  <reg type="hr" index="148" label="max12-branch_40" dt="64bit_float">0.5</reg>
+  <reg type="hr" index="180" label="max10-node_b24" dt="64bit_float">10.0</reg>
+  <reg type="hr" index="184" label="max11-node_b24" dt="64bit_float">10.0</reg>
+  <reg type="hr" index="188" label="max12-node_b24" dt="64bit_float">10.0</reg>
+  <code>mosaikrtu/conf/rtu_logic_good.py</code>
+</DVDC>

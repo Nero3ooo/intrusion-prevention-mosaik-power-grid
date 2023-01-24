@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<DVDC label="Local substation 1">
+  <ip>192.168.0.19</ip>
+  <port>10502</port>
+  <identity>
+    <vendor name="UTwente 0" url="https://www.utwente.nl" />
+    <product name="PoorSecuritySubstation" code="PSS" model="PSS 1.0" />
+    <version major="0" minor="5" />
+  </identity>
+  <reg type="co" index="0" label="switch_3-branch_38" dt="bool">True</reg>
+  <reg type="hr" index="0" label="sensor_13-node_b19" dt="64bit_float">10499.5810546875</reg>
+  <reg type="hr" index="4" label="sensor_14-node_b19" dt="64bit_float">10499.5810546875</reg>
+  <reg type="hr" index="12" label="sensor_17-node_b19" dt="64bit_float">10499.5810546875</reg>
+  <reg type="hr" index="36" label="sensor_22-node_b23" dt="64bit_float">10499.58203125</reg>
+  <reg type="hr" index="40" label="sensor_23-node_b23" dt="64bit_float">10499.58203125</reg>
+  <reg type="hr" index="44" label="sensor_24-node_b23" dt="64bit_float">10499.58203125</reg>
+  <reg type="hr" index="48" label="sensor_13-branch_40" dt="64bit_float">0.014321316964924335</reg>
+  <reg type="hr" index="52" label="sensor_14-branch_40" dt="64bit_float">0.014321316964924335</reg>
+  <reg type="hr" index="60" label="sensor_17-branch_38" dt="64bit_float">0.006536506116390228</reg>
+  <reg type="hr" index="84" label="sensor_22-branch_38" dt="64bit_float">0.006536506116390228</reg>
+  <reg type="hr" index="88" label="sensor_23-branch_31" dt="64bit_float">0.03113924339413643</reg>
+  <reg type="hr" index="92" label="sensor_24-branch_39" dt="64bit_float">0.007784810848534107</reg>
+  <reg type="hr" index="104" label="max13-branch_40" dt="64bit_float">0.5</reg>
+  <reg type="hr" index="108" label="max14-branch_40" dt="64bit_float">0.4000000059604645</reg>
+  <reg type="hr" index="120" label="max17-branch_38" dt="64bit_float">5.0</reg>
+  <reg type="hr" index="144" label="max22-branch_38" dt="64bit_float">0.4000000059604645</reg>
+  <reg type="hr" index="148" label="max23-branch_31" dt="64bit_float">0.4000000059604645</reg>
+  <reg type="hr" index="152" label="max24-branch_39" dt="64bit_float">0.4000000059604645</reg>
+  <reg type="hr" index="160" label="max13-node_b19" dt="64bit_float">11050.0</reg>
+  <reg type="hr" index="164" label="max14-node_b19" dt="64bit_float">11000.0</reg>
+  <reg type="hr" index="168" label="max17-node_b19" dt="64bit_float">11100.0</reg>
+  <reg type="hr" index="192" label="max22-node_b23" dt="64bit_float">11005.0</reg>
+  <reg type="hr" index="196" label="max23-node_b23" dt="64bit_float">12000.0</reg>
+  <reg type="hr" index="200" label="max24-node_b23" dt="64bit_float">11550.0</reg>
+  <code>mosaikrtu/conf/rtu_logic_good.py</code>
+</DVDC>
