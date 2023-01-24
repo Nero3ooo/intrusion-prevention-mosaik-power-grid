@@ -137,9 +137,7 @@ services:
     command: python validation_setup.py
     volumes:
         - ./testbed/:/app
-        - ./testbed/mosaikpypower/mosaik_pypower/:/ids/mosaik_pypower
-        - ./testbed/data/:/ids/data
-        - ./testbed/data/:/ids/data/data
+        - ./testbed/mosaikpypower/mosaik_pypower/:/ids/mosaik_pypower #- ./testbed/data/:/ids/data    - ./testbed/data/:/ids/data/data
         - ./testbed/mosaikrtu/:/ids/mosaikrtu
         - ./testbed/mosaik-web/:/ids/mosaik-web
         - ./testbed/outputs/:/ids/outputs
