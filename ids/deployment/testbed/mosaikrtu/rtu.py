@@ -269,12 +269,12 @@ class MonitoringRTU(mosaik_api.Simulator):
         print("Server Stopped")
         print("\n\n")
         print('Finished')
-        if(IPS and global_sensor_zero_counter > 0):
-            raise Exception('zero-sensors',global_sensor_zero_counter)
+        if(IPS):#and global_sensor_zero_counter > 0):
+            asyncio.run(self.__return_result_to_validation(global_sensor_zero_counter))
+            #raise Exception('zero-sensors',global_sensor_zero_counter)
 
 
-    def get_data(self, outputs
-                 ):  # Return the data for the requested attributes in outputs
+    def get_data(self, outputs):  # Return the data for the requested attributes in outputs
         #outputs is a dict mapping entity IDs to lists of attribute names whose values are requested:
         # 'eid_1': ['attr_1', 'attr_2', ...],
         #{    'eid_1: {}      'attr_1': 'val_1', 'attr_2': 'val_2', ...
@@ -371,7 +371,13 @@ class MonitoringRTU(mosaik_api.Simulator):
         self.res = await client_val.nodes.objects.call_method(f"{nsidx}:validate", rtu0_data, rtu1_data)
         await print(f"Calling ServerMethod returned {self.res}")
 
-
+    async def __return_result_to_validation(self, num_of_zeros) -> None:
+        self.uuid = "1234"
+        client_val = Client(url=self.val_address, watchdog_intervall=1000)
+        await client_val.connect()
+        await client_val.load_data_type_definitions()
+        nsidx = await client_val.get_namespace_index(self.namespace)
+        await client_val.nodes.objects.call_method(f"{nsidx}:return_zeros", self.conf["port"], num_of_zeros)
         #async def __build_rtu_data_object(self, ) -> None:
 
 def main():

@@ -13,49 +13,62 @@ from asyncua.common.structures104 import new_struct, new_struct_field
 import time
 
 port = 10000
+zeros_array = {}
+
+@uamethod
+def return_zeros(parent, bindport, num_of_zeros):
+    print(f"port: {bindport} num of zeros: {num_of_zeros}")
+    global zeros_array
+    zeros_array[f"{bindport}"] = num_of_zeros
+
+
 @uamethod
 def validate(parent, rtu0Data, rtu1Data):
     global port
-
-    print(f"Port1: {port}")
+    
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
         print(rtu0Data)
-        __create_xml(rtu0Data, 0, "192.168.0.19", port)
+        bindport1 = port
+        __create_xml(rtu0Data, 0, "192.168.0.19", bindport1)
+        port += 1
+
     if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
         print(rtu1Data)
-        __create_xml(rtu1Data, 1, "192.168.0.19", port+1)
+        bindport2 = port
+        __create_xml(rtu1Data, 1, "192.168.0.19", bindport2)
+        port += 1
 
-    port += 2
-    print(f"Port2: {port}")
-    
     # run simulation
     result = False
     while True:
         try:
             test_scenario.main(True)
-            result = True
             break
         except OSError:
-            bindport = port
-            print(f"Port in bind {bindport}, wait 60 seconds")
+            print(f"Port in bind, wait 60 seconds")
             time.sleep(60)
-        except Exception as e:
-            name,number_of_zeros = e.args
-            print(number_of_zeros)
-            break
     
+    result = True
+    if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
+        if zeros_array.pop(f"{bindport1}") > 2:
+            result = False
+
+    if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
+        if zeros_array.pop(f"{bindport2}") > 2:
+            result = False
+
     if result:
         print(f"validation successful")
 
-    return True
-    #return False
+    
+    return result
 
 
-def __create_xml(rtuData, rtuNumber, ip, port):
+def __create_xml(rtuData, rtuNumber, ip, bindport):
     ####TODO: get ports and identification from RTU, extend rtuData-Model
     dvdc = ET.Element("DVDC", label="Local substation " + str(rtuNumber+1))
     ET.SubElement(dvdc, "ip").text = ip
-    ET.SubElement(dvdc, "port").text = str(port)
+    ET.SubElement(dvdc, "port").text = str(bindport)
     identity = ET.SubElement(dvdc, "identity")
     ET.SubElement(identity, "vendor", name="UTwente 0", url="https://www.utwente.nl")
     ET.SubElement(identity, "product", name="PoorSecuritySubstation", code="PSS", model="PSS 1.0")
@@ -141,6 +154,14 @@ async def main():
         validate,
         [ua.RTUData()],
         [ua.VariantType.Boolean],
+    )
+
+    await server.nodes.objects.add_method(
+        ua.NodeId("return_zeros", idx),
+        ua.QualifiedName("return_zeros", idx),
+        return_zeros,
+        [ua.VariantType.Int32],
+        [],
     )
 
     logger.info("Starting server!")
