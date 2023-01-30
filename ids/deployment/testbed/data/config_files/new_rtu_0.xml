@@ -10,6 +10,7 @@
     
     <!-- Switches -->
     <reg type="co" index="0" label="switch_3-branch_38" dt="bool">True</reg>
+    <reg type="co" index="4" label="switch_4-branch_31" dt="bool">True</reg>
 
     <!-- Sensors (Voltages) -->
     <reg type="hr" index="0" label="sensor_13-node_b19" dt="64bit_float">12.34</reg>

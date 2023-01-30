@@ -31,6 +31,12 @@
             "bus_id": "b19",
             "power_line_id": "branch_38",
             "co_index": "0"
+        },
+        {
+            "id": "s4",
+            "bus_id": "b23",
+            "power_line_id": "branch_31",
+            "co_index": "4"
         }
     ],
     "buses": [
