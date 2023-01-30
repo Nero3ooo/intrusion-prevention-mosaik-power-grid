@@ -20,12 +20,13 @@ def return_zeros(parent, bindport, num_of_zeros):
     print(f"port: {bindport} num of zeros: {num_of_zeros}")
     global zeros_array
     zeros_array[f"{bindport}"] = num_of_zeros
+    
 
 
 @uamethod
 def validate(parent, rtu0Data, rtu1Data):
     global port
-    
+    global zeros_array
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
         print(rtu0Data)
         bindport1 = port
@@ -48,19 +49,22 @@ def validate(parent, rtu0Data, rtu1Data):
             print(f"Port in bind, wait 60 seconds")
             time.sleep(60)
     
-    result = True
+    result = "OK"
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
-        if zeros_array.pop(f"{bindport1}") > 2:
-            result = False
-
+        if zeros_array[str(bindport1)] > 0 and zeros_array[str(bindport1)] <= 2 :
+            result = "Warning"
+        elif zeros_array[str(bindport1)] > 2:
+            result = "Error"
+        del zeros_array[str(bindport1)]
     if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
-        if zeros_array.pop(f"{bindport2}") > 2:
-            result = False
+        if zeros_array[str(bindport2)] > 0 and zeros_array[str(bindport2)] <= 2 and result == "OK":
+            result = "Warning"
+        elif zeros_array[str(bindport2)] > 2:
+            result = "Error"
+        del zeros_array[str(bindport2)]
 
-    if result:
-        print(f"validation successful")
+    print(f"validation successful, result is: {result}")
 
-    
     return result
 
 
@@ -139,12 +143,6 @@ async def main():
 
     await server.load_data_type_definitions()
 
-
-
-
-
-
-
     # populating our address space
     # server.nodes, contains links to very common nodes like objects and root
     # Set method to be used by clients
@@ -153,7 +151,7 @@ async def main():
         ua.QualifiedName("validate", idx),
         validate,
         [ua.RTUData()],
-        [ua.VariantType.Boolean],
+        [ua.VariantType.String],
     )
 
     await server.nodes.objects.add_method(
