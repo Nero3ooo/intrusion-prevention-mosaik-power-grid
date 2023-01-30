@@ -94,7 +94,7 @@ class MonitoringRTU(mosaik_api.Simulator):
         IPS = bool(strtobool(conf['ips'].lower()))
 
         if IPS:
-            self.res = True
+            self.res = "OK"
 
         global global_sensor_zero_counter
         global_sensor_zero_counter = 0
@@ -198,20 +198,18 @@ class MonitoringRTU(mosaik_api.Simulator):
                             "state",
                             v['value'])
 
-                    if(self.res or "transformer" in v['place']):
+                    if(self.res != "Error" or "transformer" in v['place']):
                         self._cache[s]['value'] = self.data.get(v['reg_type'], v['index'], 1)[0]
                         switchstates[v['place']] = v['value']
-
+                        if(self.res == "Warning"):
+                            print("\n\n-----WARNING: HERE IS A LOCAL BLACKOUT-----\n\n")
                         if commands[src][dest] == {}:
-                            print("##########Switch state changed.")
                             commands[src][dest]['switchstates'] = switchstates
                         else:
-                            if (self.res):
-                                print("##########Switch state changed.")
-                                commands[src][dest]['switchstates'].update(
-                                switchstates)
+                            commands[src][dest]['switchstates'].update(switchstates)
                     else:
                         self.data.set(v['reg_type'], v['index'], v['value'])
+                        print("\n\n-----ERROR: COMMAND NOT EXECUTED, BLACKOUT DETECTED-----\n\n")
 
         if IPS:
             global global_sensor_zero_counter
@@ -268,11 +266,12 @@ class MonitoringRTU(mosaik_api.Simulator):
         self.server.stop()
         print("Server Stopped")
         print("\n\n")
-        print('Finished')
-        if(IPS):#and global_sensor_zero_counter > 0):
-            asyncio.run(self.__return_result_to_validation(global_sensor_zero_counter))
-            #raise Exception('zero-sensors',global_sensor_zero_counter)
 
+        #after stopping server send result of validation to validation-compontent
+        if(IPS):
+            asyncio.run(self.__return_result_to_validation(global_sensor_zero_counter))
+
+        print('Finished')
 
     def get_data(self, outputs):  # Return the data for the requested attributes in outputs
         #outputs is a dict mapping entity IDs to lists of attribute names whose values are requested:
@@ -305,14 +304,21 @@ class MonitoringRTU(mosaik_api.Simulator):
         #     server_certificate=self.config.c2_cert
         # )
 
+        break_counter = 0
         while True:
             try:
                 await client_val.connect()
                 logger.info("Connected to validation Server")
                 break
             except BaseException as e:
+                if break_counter == 4:
+                    logger.error(f"{self.uuid} Could not reach validation Server after trying 5 times.")
+                    return
+                break_counter += 1
                 logger.error(f"{self.uuid} Connection error while connecting to validation Server. Retrying in 5 seconds")
                 await asyncio.sleep(5)
+            
+            
 
         await client_val.load_data_type_definitions()
         nsidx = await client_val.get_namespace_index(self.namespace)
@@ -369,7 +375,7 @@ class MonitoringRTU(mosaik_api.Simulator):
 
         # Calling a method
         self.res = await client_val.nodes.objects.call_method(f"{nsidx}:validate", rtu0_data, rtu1_data)
-        await print(f"Calling ServerMethod returned {self.res}")
+        print(f"Calling ServerMethod returned {self.res}")
 
     async def __return_result_to_validation(self, num_of_zeros) -> None:
         self.uuid = "1234"
