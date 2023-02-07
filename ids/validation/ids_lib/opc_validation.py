@@ -12,59 +12,61 @@ from asyncua.common.methods import uamethod
 from asyncua.common.structures104 import new_struct, new_struct_field
 import time
 
+# use different ports to start the RTUs because of port binding errors
 port = 10000
+# dictionary for saving results of validation
 zeros_array = {}
 
+# method to get validation results from rtu 
 @uamethod
 def return_zeros(parent, bindport, num_of_zeros):
-    print(f"port: {bindport} num of zeros: {num_of_zeros}")
+    # print(f"port: {bindport} num of zeros: {num_of_zeros}")
     global zeros_array
     zeros_array[f"{bindport}"] = num_of_zeros
     
 
-
+# method to validate rtu commands  
 @uamethod
-def validate(parent, rtu0Data, rtu1Data):
-    global port
+def validate(parent, rtu0Data, rtu1Data): 
+    global port 
     global zeros_array
+
+    print("begin validation")
+
+    # if rtu data of rtu 0 is given set port and create xml for this rtu
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
-        print(rtu0Data)
         bindport1 = port
         __create_xml(rtu0Data, 0, "192.168.0.19", bindport1)
         port += 1
 
+    # if rtu data of rtu 1 is given set port and create xml for this rtu
     if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
-        print(rtu1Data)
         bindport2 = port
         __create_xml(rtu1Data, 1, "192.168.0.19", bindport2)
         port += 1
 
-    # run simulation
-    result = False
-    while True:
-        try:
-            test_scenario.main(True)
-            break
-        except OSError:
-            print(f"Port in bind, wait 60 seconds")
-            time.sleep(60)
-    
+    # run simulation in IPS mode
+    test_scenario.main(True)
+
+    # after running simulation use the result to validate the command    
     result = "OK"
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
+        print("rtu0 validation")
         if zeros_array[str(bindport1)] > 0 and zeros_array[str(bindport1)] <= 2 :
             result = "Warning"
         elif zeros_array[str(bindport1)] > 2:
             result = "Error"
         del zeros_array[str(bindport1)]
     if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
+        print("rtu1 validation")
         if zeros_array[str(bindport2)] > 0 and zeros_array[str(bindport2)] <= 2 and result == "OK":
             result = "Warning"
         elif zeros_array[str(bindport2)] > 2:
             result = "Error"
         del zeros_array[str(bindport2)]
 
+    # successfull validation return result
     print(f"validation successful, result is: {result}")
-
     return result
 
 
@@ -95,10 +97,11 @@ def __create_xml(rtuData, rtuNumber, ip, bindport):
 async def main():
      # Setup Logging for this package
     logging.getLogger('pymodbus3').setLevel(logging.CRITICAL)
+    logging.getLogger('asyncua.uaprotocol').setLevel(logging.CRITICAL)
 
     global logger
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.ERROR)
 
     #handler = OPCNetworkLogger()
     #logger.addHandler(handler)
@@ -108,6 +111,10 @@ async def main():
 
     # setup our server
     server = Server()
+    server.limits.max_recv_buffer = 65535
+    #server.limits.max_send_buffer = 6
+    server.limits.max_send_buffer = 104857600
+    server.limits.max_chunk_count = 1601
     await server.init()
     server.set_endpoint("opc.tcp://0.0.0.0:4840/freeopcua/server/")
 
