@@ -216,7 +216,6 @@ class MonitoringRTU(mosaik_api.Simulator):
             global global_sensor_zero_counter
             sensor_zero_counter = 0
         for eid, data in inputs.items():
-
             for attr, values in data.items():  # attr is like I_real etc.
                 if attr in ['I_real', 'Vm']:
                     for src, value in values.items():
@@ -259,8 +258,6 @@ class MonitoringRTU(mosaik_api.Simulator):
         if IPS and sensor_zero_counter > global_sensor_zero_counter:
             global_sensor_zero_counter = sensor_zero_counter
 
-        if IPS:
-            return time + 60
         return time + 60
 
     def finalize(self):
@@ -295,7 +292,6 @@ class MonitoringRTU(mosaik_api.Simulator):
     # validation method connects to validation server and sets parameter after validation
     async def __validate_commands(self, items, reg_type, index, newValue) -> None:
 
-        #self.uuid = str(config.uuid)
         self.uuid = "1234"
         client_val = Client(url=self.val_address, watchdog_intervall=1000)
 
@@ -341,7 +337,6 @@ class MonitoringRTU(mosaik_api.Simulator):
             
             # create switch data and add it to switch array 
             if( "switch" in v["dev"]):
-                print("\n add Switch\n")
                 switch = ua.SwitchData()
                 switch.dev = v["dev"]
                 switch.place = v["place"]
@@ -361,7 +356,6 @@ class MonitoringRTU(mosaik_api.Simulator):
             
             # create other data for transformers, sensors and max values and add it to others array
             elif( "transformer" in v["dev"] or "sensor" in v["dev"] or "max" in v["dev"]):
-                print("\n add Other\n")
                 other = ua.OtherData()
                 other.dev = v["dev"]
                 other.place = v["place"]
@@ -387,7 +381,6 @@ class MonitoringRTU(mosaik_api.Simulator):
         await client_val.load_data_type_definitions()
         nsidx = await client_val.get_namespace_index(self.namespace)
         await client_val.nodes.objects.call_method(f"{nsidx}:return_zeros", self.conf["port"], num_of_zeros)
-        #async def __build_rtu_data_object(self, ) -> None:
 
 def main():
     return mosaik_api.start_simulation(MonitoringRTU())
