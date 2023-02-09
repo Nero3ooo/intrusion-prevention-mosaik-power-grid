@@ -127,8 +127,6 @@ def main(in_val = False):
         # Will be used later to calculate to complete simulation times
         start_time = time.time()
 
-        print("\n")
-
         # Creation of the world
         world = mosaik.World(sim_config)
         logger.info("Created the simulation world.")
