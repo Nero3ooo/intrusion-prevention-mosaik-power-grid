@@ -148,8 +148,8 @@ class MonitoringRTU(mosaik_api.Simulator):
                 assert eid not in self._entities
                 self._entities[eid] = attrs
                 if 'node' not in attrs:
-                    print("Entity without the node is {}".format(eid))
-                    print("Attrs: {}".format(attrs))
+                    logger.warning("Entity without the node is {}".format(eid))
+                    logger.warning("Attrs: {}".format(attrs))
                 children.append({
                     'eid': eid,
                     'type': attrs['etype'],
@@ -190,7 +190,7 @@ class MonitoringRTU(mosaik_api.Simulator):
                                 v['index'], 
                                 self.data.get( v['reg_type'], v['index'],1)[0]))
                         except BaseException as e:
-                            print(e)
+                            logger.error(e)
                     if RTU_STATS_OUTPUT:  # V: write to output file "model_readings.csv"
                         rtu_model.save_readings(
                             self.sid, 
@@ -202,15 +202,16 @@ class MonitoringRTU(mosaik_api.Simulator):
                         self._cache[s]['value'] = self.data.get(v['reg_type'], v['index'], 1)[0]
                         switchstates[v['place']] = v['value']
                         if(self.res == "Warning"):
-                            print("\n\n-----WARNING: HERE IS A LOCAL BLACKOUT-----\n\n")
+                            logger.warning("\n\n-----WARNING: HERE IS A LOCAL BLACKOUT-----\n\n")
                         if commands[src][dest] == {}:
                             commands[src][dest]['switchstates'] = switchstates
                         else:
                             commands[src][dest]['switchstates'].update(switchstates)
                     else:
                         self.data.set(v['reg_type'], v['index'], v['value'])
-                        print("\n\n-----ERROR: COMMAND NOT EXECUTED, BLACKOUT DETECTED-----\n\n")
-
+                        logger.error("\n\n-----ERROR: COMMAND NOT EXECUTED, BLACKOUT DETECTED-----\n\n")
+        
+        # set counter for checking zero sensors to null
         if IPS:
             global global_sensor_zero_counter
             sensor_zero_counter = 0
@@ -251,8 +252,10 @@ class MonitoringRTU(mosaik_api.Simulator):
 
         if bool(switchstates) and RECORD_TIMES:
             rtu_model.log_event("NC")
-        print(f"mosaik set data: {commands}")
+        logger.debug(f"mosaik set data: {commands}")
         yield self.mosaik.set_data(commands)
+
+        # use max of zero counter and global zero counter to global zero counter
         if IPS and sensor_zero_counter > global_sensor_zero_counter:
             global_sensor_zero_counter = sensor_zero_counter
 
@@ -264,31 +267,32 @@ class MonitoringRTU(mosaik_api.Simulator):
         #self.worker.stop()
         #print("Worker Stopped")
         self.server.stop()
-        print("Server Stopped")
-        print("\n\n")
+        logger.info("Server Stopped")
+        logger.info("\n\n")
 
         #after stopping server send result of validation to validation-compontent
         if(IPS):
-            asyncio.run(self.__return_result_to_validation(global_sensor_zero_counter))
+            asyncio.run(self.__return_result_to_validation(global_sensor_zero_counter), debug = False)
 
-        print('Finished')
+        logger.info(f'{self.sid}: Finished')
 
     def get_data(self, outputs):  # Return the data for the requested attributes in outputs
         #outputs is a dict mapping entity IDs to lists of attribute names whose values are requested:
         # 'eid_1': ['attr_1', 'attr_2', ...],
         #{    'eid_1: {}      'attr_1': 'val_1', 'attr_2': 'val_2', ...
-        #print("Output of RTU: {}".format(outputs))
+        logger.debug("Output of RTU: {}".format(outputs))
         data = {}
         for eid, attrs in outputs.items():
             for attr in attrs:
                 try:
                     val = self._entities[eid][attr]
                 except KeyError:
-                    print("No such Key")
+                    logger.error("No such Key")
                     val = None
                 data.setdefault(eid, {})[attr] = val
         return data
 
+    # validation method connects to validation server and sets parameter after validation
     async def __validate_commands(self, items, reg_type, index, newValue) -> None:
 
         #self.uuid = str(config.uuid)
@@ -304,6 +308,7 @@ class MonitoringRTU(mosaik_api.Simulator):
         #     server_certificate=self.config.c2_cert
         # )
 
+        # connecting to validation server (retrying up to 5 times)
         break_counter = 0
         while True:
             try:
@@ -322,15 +327,19 @@ class MonitoringRTU(mosaik_api.Simulator):
 
         await client_val.load_data_type_definitions()
         nsidx = await client_val.get_namespace_index(self.namespace)
-        print(f"Namespace Index for '{self.namespace}': {nsidx}")
+        logger.info(f"Namespace Index for '{self.namespace}': {nsidx}")
+
+        # create rtu data, switches array and others array for rtu 0 and rtu 1
         rtu0_data = ua.RTUData()
         rtu0_data.switches = []
         rtu0_data.others = []
         rtu1_data = ua.RTUData()
         rtu1_data.switches = []
         rtu1_data.others = []
+
         for s, v in self._cache.items():
-            print(f"\n item s {s} \n item v: {v}")
+            
+            # create switch data and add it to switch array 
             if( "switch" in v["dev"]):
                 print("\n add Switch\n")
                 switch = ua.SwitchData()
@@ -349,6 +358,8 @@ class MonitoringRTU(mosaik_api.Simulator):
                     rtu0_data.switches.append(switch)
                 elif(self.sid == "RTUSim-1"):
                     rtu1_data.switches.append(switch)
+            
+            # create other data for transformers, sensors and max values and add it to others array
             elif( "transformer" in v["dev"] or "sensor" in v["dev"] or "max" in v["dev"]):
                 print("\n add Other\n")
                 other = ua.OtherData()
@@ -364,19 +375,11 @@ class MonitoringRTU(mosaik_api.Simulator):
                 elif(self.sid == "RTUSim-1"):
                     rtu1_data.others.append(other)
 
-        # for eid, data in items:
-        #     for attr, values in data.items():  # attr is like I_real etc.
-        #         if attr in ['I_real', 'Vm']:
-        #             for src, value in values.items():
-        #                 if "grid" in src:
-        #                     continue
-        #                 else:
-        #                     print(f"\n source: {src}\n value: {value} \n \n")
-
-        # Calling a method
+        # calling validation method on validation server 
         self.res = await client_val.nodes.objects.call_method(f"{nsidx}:validate", rtu0_data, rtu1_data)
-        print(f"Calling ServerMethod returned {self.res}")
+        logger.info(f"Calling ServerMethod returned {self.res}")
 
+    # return count of sensors to IPS
     async def __return_result_to_validation(self, num_of_zeros) -> None:
         self.uuid = "1234"
         client_val = Client(url=self.val_address, watchdog_intervall=1000)

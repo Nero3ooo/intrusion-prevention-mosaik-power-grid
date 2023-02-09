@@ -20,7 +20,7 @@ zeros_array = {}
 # method to get validation results from rtu 
 @uamethod
 def return_zeros(parent, bindport, num_of_zeros):
-    # print(f"port: {bindport} num of zeros: {num_of_zeros}")
+    logger.debug(f"port: {bindport} num of zeros: {num_of_zeros}")
     global zeros_array
     zeros_array[f"{bindport}"] = num_of_zeros
     
@@ -31,7 +31,7 @@ def validate(parent, rtu0Data, rtu1Data):
     global port 
     global zeros_array
 
-    print("begin validation")
+    logger.info("begin validation")
 
     # if rtu data of rtu 0 is given set port and create xml for this rtu
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
@@ -51,14 +51,14 @@ def validate(parent, rtu0Data, rtu1Data):
     # after running simulation use the result to validate the command    
     result = "OK"
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
-        print("rtu0 validation")
+        logger.debug("rtu0 validation")
         if zeros_array[str(bindport1)] > 0 and zeros_array[str(bindport1)] <= 2 :
             result = "Warning"
         elif zeros_array[str(bindport1)] > 2:
             result = "Error"
         del zeros_array[str(bindport1)]
     if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
-        print("rtu1 validation")
+        logger.debug("rtu1 validation")
         if zeros_array[str(bindport2)] > 0 and zeros_array[str(bindport2)] <= 2 and result == "OK":
             result = "Warning"
         elif zeros_array[str(bindport2)] > 2:
@@ -66,7 +66,7 @@ def validate(parent, rtu0Data, rtu1Data):
         del zeros_array[str(bindport2)]
 
     # successfull validation return result
-    print(f"validation successful, result is: {result}")
+    logger.info(f"validation successful, result is: {result}")
     return result
 
 

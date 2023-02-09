@@ -52,10 +52,10 @@ class Server(threading.Thread):
                 self.srv.serve_forever()
             except Exception:
                 raise
-        print("[*] Server stopping.")
+        log.info("[*] Server stopping.")
 
     def verify_request(self, request, client_address):
-        print('verify_request(%s, %s)', request, client_address)
+        log.info('verify_request(%s, %s)', request, client_address)
         log.warning('     SERVER NEW REQUEST, {}'.format(datetime.now()))
         return socketserver.ThreadingTCPServer.verify_request(self, request, client_address)
 
@@ -65,8 +65,8 @@ class Server(threading.Thread):
         """
         self.do_stop.set()
         if self.srv is None:
-            print("there was no server, maybe server not started?")
+            log.warning("there was no server, maybe server not started?")
         else:
             self.srv.server_close()
             self.srv.shutdown()
-            print("[*] Stopping server.")
+            log.info("[*] Stopping server.")

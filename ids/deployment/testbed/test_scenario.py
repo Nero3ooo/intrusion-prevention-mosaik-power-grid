@@ -17,6 +17,10 @@ import logging
 import sys
 
 def main(in_val = False):
+    
+    logging.getLogger("PyPower").setLevel(logging.CRITICAL)
+    logger = logging.getLogger(__name__)
+    
     # Simulator Configuration
     # specifies for Mosaik which simulators will be used
     global sim_config
@@ -62,7 +66,7 @@ def main(in_val = False):
     #     
     # else:
     conf = topoloader.get_config()
-    print(f"configfile:  {conf}")
+    logger.debug(f"configfile:  {conf}")
 
     # configuration
     global START
@@ -127,19 +131,19 @@ def main(in_val = False):
 
         # Creation of the world
         world = mosaik.World(sim_config)
-        print("Created the simulation world.")
-        print("________________________________")
-        print("\n")
+        logger.info("Created the simulation world.")
+        logger.info("________________________________")
+        logger.info("\n")
 
         # Creation of the scenario
-        print("Started simulation scenario creation.")
+        logger.info("Started simulation scenario creation.")
         create_scenario(world)
-        print("Created the simulation scenario.")
-        print("________________________________")
-        print("\n")
+        logger.info("Created the simulation scenario.")
+        logger.info("________________________________")
+        logger.info("\n")
 
         # Run the simualtion world
-        print("Started simulation run.")
+        logger.info("Started simulation run.")
         #Since the simulation is partly running very slowly, we let it take all the time it needs,
         #otherwise the loggs are not readable due to the real-time factor warnings
 
@@ -156,17 +160,17 @@ def main(in_val = False):
         #     world.run(until=END, rt_factor=RT_FACTOR)  # slowed down by RT_FACTOR
 
 
-        print("Finished simulation run.")
-        print("________________________________")
-        print("\n")
+        logger.info("Finished simulation run.")
+        logger.info("________________________________")
+        logger.info("\n")
 
         elapsed_time = time.time() - start_time
-        print("Elapsed time: {}".format(elapsed_time))
-        print("\n")
-        print("End of the simulation.")
+        logger.info("Elapsed time: {}".format(elapsed_time))
+        logger.info("\n")
+        logger.info("End of the simulation.")
         if in_val:
             break
-        print("Running simulation again because it was so fun!")
+        logger.info("Running simulation again because it was so fun!")
         
 
 
@@ -219,28 +223,28 @@ def create_scenario(world):
     if not GEN_DATA == None:
         connect_buildings_to_grid(world, gens, grid)
     '''ADDED'''
-    print("Connected all entities")
+    logger.info("Connected all entities")
     # Connecting houses, gens and PVs to the DB
     connect_many_to_one(world, houses, hdf5, 'P_out')
     connect_many_to_one(world, pvs, hdf5, 'P')
     if not GEN_DATA == None:
         connect_many_to_one(world, gens, hdf5, 'P_out')
     '''ADDED'''
-    print("Connected houses, gens and PV to DB")
+    logger.info("Connected houses, gens and PV to DB")
     # Connecting RTUs to the grid
     connect_sensors_to_grid(world, rtu_1, grid)
     world.connect(grid_inf, rtu_sim_1, 'switchstates', async_requests=True)
     connect_sensors_to_grid(world, rtu_2, grid)
     world.connect(grid_inf, rtu_sim_2, 'switchstates', async_requests=True)
     '''ADDED'''
-    print("Connected RTUs to grid")
+    logger.info("Connected RTUs to grid")
     nodes = [e for e in grid if e.type in ('RefBus, PQBus')]
     connect_many_to_one(world, nodes, hdf5, 'P', 'Q', 'Vl', 'Vm', 'Va')
     branches = [e for e in grid if e.type in ('Transformer', 'Branch')]
     connect_many_to_one(world, branches, hdf5, 'P_from', 'Q_from', 'P_to',
                         'P_from')
     '''ADDED'''
-    print("Done stuff before webvis start")
+    logger.info("Done stuff before webvis start")
     # Web visualization
     if not IN_VALIDATION:
         webvis = world.start('WebVis', start_date=START, step_size=60)
@@ -345,5 +349,5 @@ def connect_sensors_to_grid(world, rtu, grid):
 
 # Needed to execute file as main
 if __name__ == '__main__':
-
+    logger = logging.getLogger(__name__)
     main()

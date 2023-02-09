@@ -10,6 +10,14 @@ from mosaikrtu.dvcd.server import Server
 from mosaikrtu.dvcd.worker import Worker
 import struct
 from datetime import datetime
+import logging
+logger = logging.getLogger('rtu_model')
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARN)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 import socket
 
@@ -71,13 +79,13 @@ def create_server(conf, datablock):
     :return: Modbus Server object.
     """
     #global args
+    logger.info("[*] Modbus-Server try to create @ {}:{} for RTU".format(conf["ip"], conf["port"]))
     server = Server(datablock, conf["identity"])
     server.id = conf["label"]
     server.ip = conf["ip"]
     server.port = conf["port"]
 
-    print("[*] Modbus-Server created @ {}:{} for RTU".format(
-        server.ip, server.port))
+    logger.info("[*] Modbus-Server created @ {}:{} for RTU".format(server.ip, server.port))
     return server
 
 
@@ -90,7 +98,7 @@ def create_worker(conf, datablock, cache):
     """
     code = conf["code"]
     worker = Worker(datablock, code, cache)
-    print("[*] Worker created.".format(worker.name))
+    logger.info("[*] Worker created.".format(worker.name))
     return worker
 
 
@@ -135,7 +143,7 @@ def broadcast_values(values, ip, port):
 
 # content of the dvcd.loader
 def load_rtu(path):
-    print("[*] Loading configuration XML: '{}'.".format(path))
+    logger.info("[*] Loading configuration XML: '{}'.".format(path))
     conf = {}
     try:
         parser = xml.dom.minidom.parse(path)

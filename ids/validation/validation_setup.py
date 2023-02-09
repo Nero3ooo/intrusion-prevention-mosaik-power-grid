@@ -17,7 +17,7 @@ def run_val():
     config.private_key_password = os.getenv('IDS_PRIVATE_KEY_PASSWORD')
 
     # Run validation forever
-    asyncio.run(opc_validation.main())
+    asyncio.run(opc_validation.main(), debug = False)
 
 
 if __name__ == '__main__':
