@@ -152,8 +152,11 @@ def main(in_val = False):
         if not in_val:
             mosaik.scheduler.rt_check = ignore_rt_check
 
-        world.run(until=END, rt_factor=RT_FACTOR)
-
+        if in_val:
+            world.run(until=END, print_progress=False)
+        else:
+            world.run(until=END, rt_factor=RT_FACTOR, print_progress=False)
+        
         # if RT_FACTOR == 0:
         #     world.run(until=END)  # As fast as possible
         # else:
