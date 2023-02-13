@@ -16,8 +16,9 @@ import time
 port = 10000
 # dictionary for saving results of validation
 zeros_array = {}
+violation_dict = {}
 
-# method to get validation results from rtu 
+# method to get zero sensor results from rtu 
 @uamethod
 def return_zeros(parent, bindport, num_of_zeros):
     logger.debug(f"port: {bindport} num of zeros: {num_of_zeros}")
@@ -25,11 +26,20 @@ def return_zeros(parent, bindport, num_of_zeros):
     zeros_array[f"{bindport}"] = num_of_zeros
     
 
+# method to get physical validation results from rtu 
+@uamethod
+def return_physical_violations(parent, bindport, violations):
+    print(violations)
+    global violation_dict
+    violation_dict[f"{bindport}"] = violations
+    
+
 # method to validate rtu commands  
 @uamethod
 def validate(parent, rtu0Data, rtu1Data): 
     global port 
     global zeros_array
+    global violation_dict
 
     logger.info("begin validation")
 
@@ -49,20 +59,23 @@ def validate(parent, rtu0Data, rtu1Data):
     test_scenario.main(True)
 
     # after running simulation use the result to validate the command    
-    result = "OK"
-    if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
-        logger.debug("rtu0 validation")
-        if zeros_array[str(bindport1)] > 0 and zeros_array[str(bindport1)] <= 2 :
-            result = "Warning"
-        elif zeros_array[str(bindport1)] > 2:
-            result = "Error"
+    result = ua.ValidationResult()
+    
+    if (len(rtu0Data.switches) + len(rtu0Data.others) > 0 and len(rtu1Data.switches) + len(rtu1Data.others) > 0):
+        logger.debug("rtu0 and rtu 1 validation")
+        print("violations in bind1 and 2")
+        result.zero_sensors = zeros_array[str(bindport1)] + zeros_array[str(bindport2)]
         del zeros_array[str(bindport1)]
-    if (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
+        del zeros_array[str(bindport2)]
+    elif (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
+        logger.debug("rtu0 validation")
+        result.physical_violations = violation_dict[str(bindport1)]
+        result.zero_sensors = zeros_array[str(bindport1)]
+        del zeros_array[str(bindport1)]
+    elif (len(rtu1Data.switches) + len(rtu1Data.others) > 0):
         logger.debug("rtu1 validation")
-        if zeros_array[str(bindport2)] > 0 and zeros_array[str(bindport2)] <= 2 and result == "OK":
-            result = "Warning"
-        elif zeros_array[str(bindport2)] > 2:
-            result = "Error"
+        result.physical_violations = violation_dict[str(bindport2)]
+        result.zero_sensors = zeros_array[str(bindport2)]
         del zeros_array[str(bindport2)]
 
     # successfull validation return result
@@ -101,7 +114,7 @@ async def main():
 
     global logger
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.ERROR)
+    logger.setLevel(logging.WARNING)
 
     #handler = OPCNetworkLogger()
     #logger.addHandler(handler)
@@ -148,6 +161,24 @@ async def main():
         new_struct_field("others", other_data, array=True),
     ])
 
+    # Create data structure for physical violations
+    physical_violation_sensor, _ = await new_struct(server, idx, "PhysicalViolationSensor", [
+        new_struct_field("sensor_name", ua.VariantType.String),
+        new_struct_field("count", ua.VariantType.Int32)
+    ])
+    physical_violation, _ = await new_struct(server, idx, "PhysicalViolation", [
+        new_struct_field("code", ua.VariantType.String),
+        new_struct_field("physical_violation_sensors", physical_violation_sensor, array = True)
+    ])
+    physical_violations, _ = await new_struct(server, idx, "PhysicalViolations", [
+        new_struct_field("physical_violations", physical_violation, array = True)
+    ])
+
+    _, _ = await new_struct(server, idx, "ValidationResult", [
+        new_struct_field("physical_violations", physical_violations, array = False),
+        new_struct_field("zero_sensors", ua.VariantType.Int32)
+    ])
+    
     await server.load_data_type_definitions()
 
     # populating our address space
@@ -158,7 +189,7 @@ async def main():
         ua.QualifiedName("validate", idx),
         validate,
         [ua.RTUData()],
-        [ua.VariantType.String],
+        [ua.ValidationResult],
     )
 
     await server.nodes.objects.add_method(
@@ -166,6 +197,14 @@ async def main():
         ua.QualifiedName("return_zeros", idx),
         return_zeros,
         [ua.VariantType.Int32],
+        [],
+    )
+
+    await server.nodes.objects.add_method(
+        ua.NodeId("return_physical_violations", idx),
+        ua.QualifiedName("return_physical_violations", idx),
+        return_physical_violations,
+        [ua.PhysicalViolations()],
         [],
     )
 

@@ -66,7 +66,8 @@ class MonitoringRTU(mosaik_api.Simulator):
     url = "opc.tcp://192.168.0.19:4840/freeopcua/server/"
     val_address = url
     namespace = "http://itsis-blackout.ids/"
-    res = False
+    res = True
+    #stepcounter = 0
 
     def __init__(self):
         super().__init__(META)
@@ -81,6 +82,11 @@ class MonitoringRTU(mosaik_api.Simulator):
         self._cache = {}
         self.worker = ""
         self.server = ""
+
+        global newvalue
+        newvalue = 0
+
+
         topoloader = topology_loader()
         conf = topoloader.get_config()
         global RECORD_TIMES
@@ -94,17 +100,22 @@ class MonitoringRTU(mosaik_api.Simulator):
         IPS = bool(strtobool(conf['ips'].lower()))
 
         if IPS:
-            self.res = "OK"
+            self.res = True
 
         global global_sensor_zero_counter
         global_sensor_zero_counter = 0
 
+        self.stepcounter = 0
+        self.physical_violations = {}
+
         # Setup Logging for this package
         logging.getLogger('pymodbus3').setLevel(logging.CRITICAL)
+        logging.getLogger('asyncua.uaprotocol').setLevel(logging.CRITICAL)
+        # logging.getLogger('mosaik_api').setLevel(logging.CRITICAL)
 
         global logger
         logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.WARNING)
 
         #handler = OPCNetworkLogger()
         #logger.addHandler(handler)
@@ -165,6 +176,8 @@ class MonitoringRTU(mosaik_api.Simulator):
         return rtu
 
     def step(self, time, inputs, max_advance):
+
+        self.stepcounter += 1
         commands = {}  # set commands for switches
         switchstates = {}
         src = self.sid + '.' + self.rtueid  # RTUSim-0.0-rtu%
@@ -177,7 +190,7 @@ class MonitoringRTU(mosaik_api.Simulator):
 
         for s, v in self._cache.items():
             if 'switch' in s or 'transformer' in s:
-                print(f"\n switch {v['dev']}\n value data in switch:{self.data.get( v['reg_type'], v['index'],1)[0]} \n value in v array: {v['value']}")
+                # ----------print(f"\n switch {v['dev']}\n value data in switch:{self.data.get( v['reg_type'], v['index'],1)[0]} \n value in v array: {v['value']}")
                 #if switch or transformer has a new value
                 if self.data.get( v['reg_type'], v['index'],1)[0] != v['value'] or IPS:
                     #if the testbed was started in the ips do not connect to the validation because this is the validation
@@ -188,7 +201,7 @@ class MonitoringRTU(mosaik_api.Simulator):
                                 inputs.items(),
                                 v['reg_type'], 
                                 v['index'], 
-                                self.data.get( v['reg_type'], v['index'],1)[0]))
+                                self.data.get( v['reg_type'], v['index'],1)[0]), debug = False)
                         except BaseException as e:
                             logger.error(e)
                     if RTU_STATS_OUTPUT:  # V: write to output file "model_readings.csv"
@@ -198,23 +211,22 @@ class MonitoringRTU(mosaik_api.Simulator):
                             "state",
                             v['value'])
 
-                    if(self.res != "Error" or "transformer" in v['place']):
+                    if(self.res or "transformer" in v['place']):
                         self._cache[s]['value'] = self.data.get(v['reg_type'], v['index'], 1)[0]
                         switchstates[v['place']] = v['value']
-                        if(self.res == "Warning"):
-                            logger.warning("\n\n-----WARNING: HERE IS A LOCAL BLACKOUT-----\n\n")
                         if commands[src][dest] == {}:
                             commands[src][dest]['switchstates'] = switchstates
                         else:
                             commands[src][dest]['switchstates'].update(switchstates)
                     else:
                         self.data.set(v['reg_type'], v['index'], v['value'])
-                        logger.error("\n\n-----ERROR: COMMAND NOT EXECUTED, BLACKOUT DETECTED-----\n\n")
+                        logger.info("\n\n-----Reset switch because of validation fails-----\n\n")
         
         # set counter for checking zero sensors to null
         if IPS:
             global global_sensor_zero_counter
             sensor_zero_counter = 0
+        global newvalue
         for eid, data in inputs.items():
             for attr, values in data.items():  # attr is like I_real etc.
                 if attr in ['I_real', 'Vm']:
@@ -227,7 +239,11 @@ class MonitoringRTU(mosaik_api.Simulator):
                             assert dev_id in self._cache
 
                             self._cache[dev_id]["value"] = value
-                            print(f"new data in cache and modbus for dev_id {dev_id}: {value}")
+                            if (dev_id == 'sensor_13-node_b19' and newvalue != value):
+                                firstprint = False
+                                print(f"{dev_id}: {value}")
+                                newvalue = value 
+                            
                             if IPS and value == 0.0 :
                                 sensor_zero_counter += 1
                             self.data.set(
@@ -245,6 +261,17 @@ class MonitoringRTU(mosaik_api.Simulator):
                             if RTU_STATS_OUTPUT:  # V: write to output file "model_readings.csv"
                                 rtu_model.save_readings(
                                     self.sid, dev_id, attr, value)
+        
+        # check if it is a relevant step for the rtu (Step with new sensor values)
+        if (IPS and self.sid == "RTUSim-0"):
+            relevant_step = ((self.stepcounter-1)%30 == 0 or self.stepcounter == 1 or self.stepcounter == 3)
+        elif (IPS and self.sid == "RTUSim-1"):
+            relevant_step = ((self.stepcounter-2)%30 == 0 or self.stepcounter == 2 or self.stepcounter == 4)
+        
+        # check requirements 3, 7 and 8 here (IPS only)
+        if(IPS and relevant_step):
+            self._check_req_3()
+            self._check_req_7_and_8()
 
         fd_1.write("--- One RTU step done (for" + str(self.sid) + '.' +
                    str(self.rtueid) + "). ---\n\n")
@@ -258,6 +285,7 @@ class MonitoringRTU(mosaik_api.Simulator):
         if IPS and sensor_zero_counter > global_sensor_zero_counter:
             global_sensor_zero_counter = sensor_zero_counter
 
+        print(time)
         return time + 60
 
     def finalize(self):
@@ -269,7 +297,7 @@ class MonitoringRTU(mosaik_api.Simulator):
 
         #after stopping server send result of validation to validation-compontent
         if(IPS):
-            asyncio.run(self.__return_result_to_validation(global_sensor_zero_counter), debug = False)
+            asyncio.run(self.__return_result_to_validation(), debug = False)
 
         logger.info(f'{self.sid}: Finished')
 
@@ -288,6 +316,46 @@ class MonitoringRTU(mosaik_api.Simulator):
                     val = None
                 data.setdefault(eid, {})[attr] = val
         return data
+
+    def _check_req_3(self):
+        """Checks Requirement 3 (local scope): There is no current on a power line with an open switch."""
+    #     # Get all power lines with open switch
+        open_switch_lines = []
+        for s, v in self._cache.items():
+            if "switch" in s and v["value"] == False:
+                print(f"switch {s} is open")
+                open_switch_lines.append(v["place"])
+        for s, v in self._cache.items():
+            if "sensor" in s and v["place"] in open_switch_lines and float(v['value']) != 0.0:
+                self._add_physical_violation("S3", s)
+                logger.warning(f"S3 violation value:{v['value']} on {v['place']}")
+
+    def _check_req_7_and_8(self):
+        """Checks Requirement S7 and S8: Safety threshold regarding voltage and current is met at every meter."""
+        for s, v in self._cache.items():
+            if("sensor" in v["dev"]):
+                for a, b in self._cache.items():
+                    number = v["dev"]
+                    number = number.replace("sensor_", "")
+                    if(a == "max"+str(number)+"-"+str(v['place'])):
+                        logger.debug(f"mymax {b['value']} for sensor {s} with value {v['value']}")
+                        if(float(v["value"]) > float(b["value"])):
+                            print(f"mymax {b['value']} for sensor {s} with value {v['value']}")
+                            if("node" in s):
+                                self._add_physical_violation("S7", s)
+                                logger.warning(f"S7 violation value:{v['value']} higher than {b['value']}")
+                            else:
+                                self._add_physical_violation("S8", s)
+                                logger.warning(f"S8 violation value:{v['value']} higher than {b['value']}")
+    
+    #violation helper to add violations for IPS
+    def _add_physical_violation(self, violation, sensor):
+        if not violation in self.physical_violations:
+            self.physical_violations[violation] = {}
+        if sensor in self.physical_violations[violation]:
+            self.physical_violations[violation][sensor] += 1
+        else:
+            self.physical_violations[violation][sensor] = 1
 
     # validation method connects to validation server and sets parameter after validation
     async def __validate_commands(self, items, reg_type, index, newValue) -> None:
@@ -370,17 +438,46 @@ class MonitoringRTU(mosaik_api.Simulator):
                     rtu1_data.others.append(other)
 
         # calling validation method on validation server 
-        self.res = await client_val.nodes.objects.call_method(f"{nsidx}:validate", rtu0_data, rtu1_data)
-        logger.info(f"Calling ServerMethod returned {self.res}")
+        validation_result = await client_val.nodes.objects.call_method(f"{nsidx}:validate", rtu0_data, rtu1_data)
+        logger.info(f"Calling ServerMethod returned {validation_result}")
+        self.res = True
+        if validation_result.zero_sensors > 0 and validation_result.zero_sensors <= 2:
+            logger.warning("\n\n-----WARNING: There are a few zero sensors-----\n\n")
+        elif validation_result.zero_sensors > 2:
+            logger.warning("\n\n-----ERROR: There are multiple zero sensors-----\n\n")
+            self.res = False
+        if validation_result.physical_violations:
+            print(validation_result.physical_violations)
+        
 
-    # return count of sensors to IPS
-    async def __return_result_to_validation(self, num_of_zeros) -> None:
+    # return count of zero sensors and physical violations to IPS
+    async def __return_result_to_validation(self) -> None:
         self.uuid = "1234"
+        global global_sensor_zero_counter
         client_val = Client(url=self.val_address, watchdog_intervall=1000)
         await client_val.connect()
         await client_val.load_data_type_definitions()
         nsidx = await client_val.get_namespace_index(self.namespace)
-        await client_val.nodes.objects.call_method(f"{nsidx}:return_zeros", self.conf["port"], num_of_zeros)
+        
+        # call function on server
+        await client_val.nodes.objects.call_method(f"{nsidx}:return_zeros", self.conf["port"], global_sensor_zero_counter)
+        
+        # map violations to OPC-Objects, because OPC does not allow to use dictionaries
+        violations = ua.PhysicalViolations()
+        violations.physical_violations = []
+        for code in self.physical_violations:
+            violation = ua.PhysicalViolation()
+            violation.code = code
+            violation.physical_violation_sensors = []
+            for sensor_name in self.physical_violations[code]: 
+                sensor = ua.PhysicalViolationSensor()
+                sensor.sensor_name = sensor_name
+                sensor.count = self.physical_violations[code][sensor_name]
+                violation.physical_violation_sensors.append(sensor)
+            violations.physical_violations.append(violation)
+
+        # call function on server
+        await client_val.nodes.objects.call_method(f"{nsidx}:return_physical_violations", self.conf["port"], violations)
 
 def main():
     return mosaik_api.start_simulation(MonitoringRTU())
