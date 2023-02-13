@@ -19,6 +19,7 @@ import sys
 def main(in_val = False):
     
     logging.getLogger("PyPower").setLevel(logging.CRITICAL)
+    global logger
     logger = logging.getLogger(__name__)
     
     # Simulator Configuration
@@ -176,6 +177,7 @@ def main(in_val = False):
 
 
 def create_scenario(world):
+    global logger
     # Creates the simulation scenario, e.g. creating simulators and connecting them
 
     # Start all simulators (PyPower, Household, PV, RTU)
