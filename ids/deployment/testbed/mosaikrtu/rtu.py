@@ -198,6 +198,7 @@ class MonitoringRTU(mosaik_api.Simulator):
                         try:
                             #check if new value of switch is valid
                             asyncio.run(self.__validate_commands(
+                                time,
                                 inputs.items(),
                                 v['reg_type'], 
                                 v['index'], 
@@ -285,7 +286,6 @@ class MonitoringRTU(mosaik_api.Simulator):
         if IPS and sensor_zero_counter > global_sensor_zero_counter:
             global_sensor_zero_counter = sensor_zero_counter
 
-        print(time)
         return time + 60
 
     def finalize(self):
@@ -358,7 +358,7 @@ class MonitoringRTU(mosaik_api.Simulator):
             self.physical_violations[violation][sensor] = 1
 
     # validation method connects to validation server and sets parameter after validation
-    async def __validate_commands(self, items, reg_type, index, newValue) -> None:
+    async def __validate_commands(self, time, items, reg_type, index, newValue) -> None:
 
         self.uuid = "1234"
         client_val = Client(url=self.val_address, watchdog_intervall=1000)
@@ -438,7 +438,7 @@ class MonitoringRTU(mosaik_api.Simulator):
                     rtu1_data.others.append(other)
 
         # calling validation method on validation server 
-        validation_result = await client_val.nodes.objects.call_method(f"{nsidx}:validate", rtu0_data, rtu1_data)
+        validation_result = await client_val.nodes.objects.call_method(f"{nsidx}:validate", rtu0_data, rtu1_data, time)
         logger.info(f"Calling ServerMethod returned {validation_result}")
         self.res = True
         if validation_result.zero_sensors > 0 and validation_result.zero_sensors <= 2:

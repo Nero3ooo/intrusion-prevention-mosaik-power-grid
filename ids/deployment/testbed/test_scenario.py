@@ -16,7 +16,7 @@ import time
 import logging
 import sys
 
-def main(in_val = False):
+def main(in_val = False, start_time = '2014-01-01 00:00:00'):
     
     logging.getLogger("PyPower").setLevel(logging.CRITICAL)
     global logger
@@ -72,6 +72,8 @@ def main(in_val = False):
     # configuration
     global START
     START = conf['start']
+    if in_val:
+        START = start_time
 
     global END
     END = int(conf['end'])

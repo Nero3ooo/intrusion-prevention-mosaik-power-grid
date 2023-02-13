@@ -11,6 +11,7 @@ from asyncua import Server, ua
 from asyncua.common.methods import uamethod
 from asyncua.common.structures104 import new_struct, new_struct_field
 import time
+from datetime import timedelta
 
 # use different ports to start the RTUs because of port binding errors
 port = 10000
@@ -36,13 +37,11 @@ def return_physical_violations(parent, bindport, violations):
 
 # method to validate rtu commands  
 @uamethod
-def validate(parent, rtu0Data, rtu1Data): 
+def validate(parent, rtu0Data, rtu1Data, time): 
     global port 
     global zeros_array
     global violation_dict
-
     logger.info("begin validation")
-
     # if rtu data of rtu 0 is given set port and create xml for this rtu
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
         bindport1 = port
@@ -56,7 +55,7 @@ def validate(parent, rtu0Data, rtu1Data):
         port += 1
 
     # run simulation in IPS mode
-    test_scenario.main(True)
+    test_scenario.main(True, __get_start_time_from_time(time))
 
     # after running simulation use the result to validate the command    
     result = ua.ValidationResult()
@@ -81,7 +80,10 @@ def validate(parent, rtu0Data, rtu1Data):
     # successfull validation return result
     logger.info(f"validation successful, result is: {result}")
     return result
-
+def __get_start_time_from_time(time):
+    hours, remainder = divmod(time, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return "start 2014-01-01 " + ('{:02}:{:02}:{:02}'.format(int(hours), int(minutes), int(seconds)))
 
 def __create_xml(rtuData, rtuNumber, ip, bindport):
     ####TODO: get ports and identification from RTU, extend rtuData-Model
@@ -188,7 +190,7 @@ async def main():
         ua.NodeId("validate", idx),
         ua.QualifiedName("validate", idx),
         validate,
-        [ua.RTUData()],
+        [ua.RTUData(), ua.RTUData(), ua.VariantType.Int32],
         [ua.ValidationResult],
     )
 
