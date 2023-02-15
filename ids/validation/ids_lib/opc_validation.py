@@ -35,9 +35,16 @@ def return_physical_violations(parent, bindport, violations):
     violation_dict[f"{bindport}"] = violations
     
 
-# method to validate rtu commands  
 @uamethod
 def validate(parent, rtu0Data, rtu1Data, time): 
+    """
+    validate does a validation of RTU data with creating a new instance of a Mosaik-Simulation.
+
+    :param rtu0Data: Current data of the first RTU 
+    :param rtu1Data: Current data of the second RTU
+    :param time: The time when the Simulation should start 
+    :return: The physical violations and the zero_sensors which occured by simulating the powergrid
+    """
     global port 
     global zeros_array
     global violation_dict
@@ -54,12 +61,23 @@ def validate(parent, rtu0Data, rtu1Data, time):
         __create_xml(rtu1Data, 1, "192.168.0.19", bindport2)
         port += 1
 
-    # run simulation in IPS mode
-    test_scenario.main(True, __get_start_time_from_time(time))
+    # if there are any port binding errors retry running the testscenario after 5 seconds up to 5 times
+    bind_error_counter = 0
+    while True:
+        try:
+            # run simulation in IPS mode
+            test_scenario.main(True, __get_start_time_from_time(time))
+            break
+        # if port in bind because of an other validation wait 5 seconds
+        except OSError as e:
+            bind_error_counter += 1
+            if bind_error_counter == 6:
+                raise e
+            logger.warning(f"Port {bindport1} or Port {bindport2} in bind , wait 5 seconds")
+            time.sleep(5)
 
-    # after running simulation use the result to validate the command    
+    # after running simulation map the result and send it to the RTU    
     result = ua.ValidationResult()
-    
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0 and len(rtu1Data.switches) + len(rtu1Data.others) > 0):
         logger.debug("rtu0 and rtu 1 validation")
         print("violations in bind1 and 2")
@@ -80,6 +98,7 @@ def validate(parent, rtu0Data, rtu1Data, time):
     # successfull validation return result
     logger.info(f"validation successful, result is: {result}")
     return result
+
 def __get_start_time_from_time(time):
     hours, remainder = divmod(time, 3600)
     minutes, seconds = divmod(remainder, 60)
