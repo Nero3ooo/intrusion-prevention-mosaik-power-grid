@@ -31,6 +31,7 @@
       "type": "outbound",
       "segments": [
         "b23",
+        "s4",
         "sensor_23"
       ]
     },
