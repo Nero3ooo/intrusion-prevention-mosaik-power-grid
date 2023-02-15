@@ -442,9 +442,9 @@ class MonitoringRTU(mosaik_api.Simulator):
         logger.info(f"Calling ServerMethod returned {validation_result}")
         self.res = True
         if validation_result.zero_sensors > 0 and validation_result.zero_sensors <= 2:
-            logger.warning("\n\n-----WARNING: There are a few zero sensors-----\n\n")
+            logger.warning("\n\n-----WARNING: HERE IS A LOCAL BLACKOUT-----\n\n")
         elif validation_result.zero_sensors > 2:
-            logger.warning("\n\n-----ERROR: There are multiple zero sensors-----\n\n")
+            logger.warning("\n\n-----ERROR: COMMAND NOT EXECUTED, BLACKOUT DETECTED-----\n\n")
             self.res = False
         if validation_result.physical_violations:
             print(validation_result.physical_violations)
