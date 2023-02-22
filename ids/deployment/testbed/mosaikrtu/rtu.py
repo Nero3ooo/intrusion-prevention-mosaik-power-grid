@@ -270,7 +270,7 @@ class MonitoringRTU(mosaik_api.Simulator):
             relevant_step = ((self.stepcounter-2)%30 == 0 or self.stepcounter == 2 or self.stepcounter == 4)
         
         # check requirements 3, 7 and 8 here (IPS only)
-        if(IPS and relevant_step):
+        if(IPS):# and relevant_step):
             self._check_req_3()
             self._check_req_7_and_8()
 
@@ -294,7 +294,7 @@ class MonitoringRTU(mosaik_api.Simulator):
         self.server.stop()
         logger.info("Server Stopped")
         logger.info("\n\n")
-
+        print(f"Steps executed: {self.stepcounter}")
         #after stopping server send result of validation to validation-compontent
         if(IPS):
             asyncio.run(self.__return_result_to_validation(), debug = False)
@@ -323,7 +323,7 @@ class MonitoringRTU(mosaik_api.Simulator):
         open_switch_lines = []
         for s, v in self._cache.items():
             if "switch" in s and v["value"] == False:
-                print(f"switch {s} is open")
+                logger.info(f"switch {s} is open")
                 open_switch_lines.append(v["place"])
         for s, v in self._cache.items():
             if "sensor" in s and v["place"] in open_switch_lines and float(v['value']) != 0.0:
@@ -340,7 +340,6 @@ class MonitoringRTU(mosaik_api.Simulator):
                     if(a == "max"+str(number)+"-"+str(v['place'])):
                         logger.debug(f"mymax {b['value']} for sensor {s} with value {v['value']}")
                         if(float(v["value"]) > float(b["value"])):
-                            print(f"mymax {b['value']} for sensor {s} with value {v['value']}")
                             if("node" in s):
                                 self._add_physical_violation("S7", s)
                                 logger.warning(f"S7 violation value:{v['value']} higher than {b['value']}")
@@ -447,7 +446,14 @@ class MonitoringRTU(mosaik_api.Simulator):
             logger.warning("\n\n-----ERROR: COMMAND NOT EXECUTED, BLACKOUT DETECTED-----\n\n")
             self.res = False
         if validation_result.physical_violations:
-            print(validation_result.physical_violations)
+            #logger.warning(validation_result.physical_violations.physical_violations)
+            for physical_violation in validation_result.physical_violations.physical_violations:
+                print(f"Physical violation: {physical_violation.code} in:")
+                for sensor in physical_violation.physical_violation_sensors:
+                    print(f"\tsensorname: {sensor.sensor_name}\t"
+                                   f"count: {sensor.count}"
+                                  )
+                print("")
         
 
     # return count of zero sensors and physical violations to IPS
