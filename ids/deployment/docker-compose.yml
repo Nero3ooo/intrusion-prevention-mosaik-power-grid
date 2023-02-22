@@ -127,7 +127,8 @@ services:
     networks:
       local_network_dev:
         ipv4_address: 192.168.0.18
-        
+  
+  # docker container for validation      
   validation:
     image: itsis-blackout/validation:latest
     build:
@@ -136,8 +137,9 @@ services:
     env_file: config/environment/val.env
     command: python validation_setup.py
     volumes:
+        # different ressources from testbed
         - ./testbed/:/app
-        - ./testbed/mosaikpypower/mosaik_pypower/:/ids/mosaik_pypower #- ./testbed/data/:/ids/data    - ./testbed/data/:/ids/data/data
+        - ./testbed/mosaikpypower/mosaik_pypower/:/ids/mosaik_pypower
         - ./testbed/mosaikrtu/:/ids/mosaikrtu
         - ./testbed/mosaik-web/:/ids/mosaik-web
         - ./testbed/outputs/:/ids/outputs
@@ -145,3 +147,5 @@ services:
     networks:
       local_network_dev:
         ipv4_address: 192.168.0.19
+
+  
