@@ -16,9 +16,11 @@ URL: https://ieeexplore.ieee.org/document/9632283
 
 ## Directory Overview
 - **ids**: Implementation of networked IDS
+  - **attack-tool** : The attack tool 
   - **contrib**: collection of utility scripts
   - **deployment**: Configuration of `Docker`-based distributed deployment. (See [deployment/README](ids/deployment/README.md) for details)
   - **implementation**: Implementation of IDS System. (See [implementation/README](ids/implementation/README.md) for details)
+  - **validation**: Validation of Commands comming to the RTU. (See [visualization/README](ids/visualization/README.md) for details)
   - **visualization**: Interactive Visualization of IDS. (See [visualization/README](ids/visualization/README.md) for details)
 - **NOTICE**: Third Party libraries and their licenses
 - **AUTHORS.txt**: Attributions
