@@ -26,5 +26,8 @@ URL: https://ieeexplore.ieee.org/document/9632283
 - **AUTHORS.txt**: Attributions
 - **attack-tool** : The attack tool 
 
+# Important
+There are different configurations which have to be set to start the attack-tool. For more information see [deployment/README](ids/deployment/README.md).
+
 # License
 Individual Licenses for the different parts can be found in the respective directories.
