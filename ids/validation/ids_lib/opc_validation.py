@@ -30,7 +30,7 @@ def return_zeros(parent, bindport, num_of_zeros):
 # method to get physical validation results from rtu 
 @uamethod
 def return_physical_violations(parent, bindport, violations):
-    print(violations)
+    logger.debug(f"port: {bindport} physical violations: {violations}")
     global violation_dict
     violation_dict[f"{bindport}"] = violations
     
@@ -49,6 +49,8 @@ def validate(parent, rtu0Data, rtu1Data, time):
     global zeros_array
     global violation_dict
     logger.info("begin validation")
+    bindport1 = 2
+    bindport2 = 3
     # if rtu data of rtu 0 is given set port and create xml for this rtu
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0):
         bindport1 = port
@@ -80,7 +82,7 @@ def validate(parent, rtu0Data, rtu1Data, time):
     result = ua.ValidationResult()
     if (len(rtu0Data.switches) + len(rtu0Data.others) > 0 and len(rtu1Data.switches) + len(rtu1Data.others) > 0):
         logger.debug("rtu0 and rtu 1 validation")
-        print("violations in bind1 and 2")
+        logger.debug("violations in bind1 and 2")
         result.zero_sensors = zeros_array[str(bindport1)] + zeros_array[str(bindport2)]
         del zeros_array[str(bindport1)]
         del zeros_array[str(bindport2)]
